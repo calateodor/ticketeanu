@@ -110,11 +110,12 @@ export default async function Home() {
               <h1 data-split className="headline whitespace-nowrap text-[min(21.5cqw,11rem)] text-white drop-shadow-[0_6px_30px_rgba(60,0,80,0.35)]">
                 <SplitWords text="Gata biletul." />
               </h1>
-              {/* Stickere de mutat cu degetul: decor, informația e și în text. */}
-              <span data-drag aria-hidden="true" className="sticker sticker-in absolute right-[2%] -bottom-8 md:right-auto md:left-[46%] md:-bottom-9 text-[clamp(1rem,2.2vw,1.6rem)] [--tilt:8deg] [--delay:0.75s]">
+              {/* Stickere de mutat cu degetul (decor, informația e și în text). Așezarea implicită, cerută de Teo:
+                  „20 de secunde” sus-stânga peste „Gata”, „Fără cont” jos-dreapta sub punct. */}
+              <span data-drag aria-hidden="true" className="sticker sticker-in absolute right-0 -bottom-7 md:-right-[2%] md:-bottom-9 text-[clamp(1rem,2.2vw,1.6rem)] [--tilt:7deg] [--delay:0.9s]">
                 Fără cont
               </span>
-              <span data-drag aria-hidden="true" className="sticker sticker-white sticker-in absolute left-[4%] -bottom-8 md:left-[6%] md:-bottom-9 text-[clamp(0.95rem,1.8vw,1.35rem)] [--tilt:-6deg] [--delay:0.9s]">
+              <span data-drag aria-hidden="true" className="sticker sticker-white sticker-in absolute left-[1%] top-0 md:-top-5 text-[clamp(0.95rem,1.8vw,1.35rem)] [--tilt:-5deg] [--delay:0.75s]">
                 20 de secunde
               </span>
             </div>
