@@ -454,15 +454,25 @@ body {
   --mask-band: var(--core-mask);
   filter: brightness(2.2) saturate(0.85);
 }
-/* Luciul secundar: o pată moale de lumină care alunecă singură peste bilet, la câteva secunde,
-   independent de înclinare. Aprinde suprafața, nu granulația. */
+/* Luciul secundar: o bandă holografică (paleta sunpillar) care alunecă singură peste bilet la
+   câteva secunde, independent de înclinare. Aprinde suprafața în curcubeu, ca folia unui card. */
 .tk-sheen {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.5) 46%, rgba(255, 220, 255, 0.18) 52%, transparent 64%);
+  background: linear-gradient(
+    105deg,
+    transparent 28%,
+    hsla(2, 100%, 73%, 0.55) 36%,
+    hsla(53, 100%, 69%, 0.6) 40%,
+    hsla(93, 100%, 69%, 0.55) 44%,
+    hsla(176, 100%, 76%, 0.65) 48%,
+    hsla(228, 100%, 74%, 0.6) 52%,
+    hsla(283, 100%, 73%, 0.55) 56%,
+    transparent 64%
+  );
   background-size: 260% 100%;
-  mix-blend-mode: soft-light;
+  mix-blend-mode: overlay;
   animation: tk-sheen 6s cubic-bezier(0.45, 0, 0.25, 1) 1.6s infinite both;
 }
 @keyframes tk-sheen {
@@ -484,7 +494,13 @@ body {
     scale: 1.06;
   }
 }
-/* Text holografic: paleta sunpillar, alunecă singură încet (--drift) și după înclinare (--holo-y). */
+/* Scrisul de pe bilet: folie holografică pe bază inversată.
+   - Baza: mix-blend-mode difference, adică scrisul e negativul afișului din spatele lui (deschis pe
+     zone închise, închis pe zone deschise), deci se citește pe orice poză.
+   - Folia: paleta sunpillar, deschisă (pastel), tăiată pe litere; unghiul și poziția urmează
+     înclinarea (--ry, --holo-y), iar culorile alunecă singure încet (--drift), ca la un card adevărat.
+   Se pune pe un bloc întreg: copiii lui iau aceeași folie (culoarea lor devine transparentă);
+   liniile și codurile de bare rămân albe și se inversează. */
 @property --drift {
   syntax: "<percentage>";
   inherits: false;
@@ -492,42 +508,38 @@ body {
 }
 .tk-holo {
   background-image: repeating-linear-gradient(
-    100deg,
-    hsl(2, 100%, 80%) 0%,
-    hsl(53, 100%, 78%) 7%,
-    hsl(93, 100%, 78%) 14%,
-    hsl(176, 100%, 82%) 21%,
-    hsl(228, 100%, 82%) 28%,
-    hsl(283, 100%, 82%) 35%,
-    hsl(2, 100%, 80%) 42%
+    calc(110deg + var(--ry, 0deg) * 5),
+    hsl(2, 100%, 82%) 0%,
+    hsl(53, 100%, 80%) 6%,
+    hsl(93, 100%, 80%) 12%,
+    hsl(176, 100%, 84%) 18%,
+    hsl(228, 100%, 85%) 24%,
+    hsl(283, 100%, 85%) 30%,
+    hsl(2, 100%, 82%) 36%
   );
-  background-size: 300% 100%;
-  background-position: calc(var(--holo-y, 50%) + var(--drift)) 0;
+  background-size: 260% 260%;
+  background-position: calc(var(--holo-y, 50%) + var(--drift)) calc(var(--holo-y, 50%) * 0.7);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: tk-drift 7s linear infinite;
+  mix-blend-mode: difference;
+  animation: tk-drift 8s linear infinite;
+}
+.tk-holo * {
+  color: transparent;
+}
+.tk-holo svg,
+.tk-holo svg * {
+  color: #fff;
 }
 @keyframes tk-drift {
   to {
     --drift: 100%;
   }
 }
-/* Titlul rămâne alb; doar unde trece banda de lumină (--band) se irizează, cât de tare e --lit. */
-.tk-title-holo {
-  --hl: calc(var(--lit, 0) * 100%);
-  background-image: linear-gradient(
-    115deg,
-    #fff calc(var(--band) - 16%),
-    color-mix(in srgb, hsl(53, 100%, 72%) var(--hl), #fff) calc(var(--band) - 8%),
-    color-mix(in srgb, hsl(176, 100%, 72%) var(--hl), #fff) calc(var(--band) - 2%),
-    color-mix(in srgb, hsl(283, 100%, 76%) var(--hl), #fff) calc(var(--band) + 4%),
-    color-mix(in srgb, hsl(2, 100%, 74%) var(--hl), #fff) calc(var(--band) + 10%),
-    #fff calc(var(--band) + 16%)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Linii pe aceeași bază inversată (linia de rupere). */
+.tk-ink {
+  mix-blend-mode: difference;
 }
 .tk-content {
   position: absolute;

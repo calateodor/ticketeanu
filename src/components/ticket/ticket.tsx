@@ -167,20 +167,21 @@ export function Ticket(p: TicketProps) {
                 <div className="absolute inset-x-0 top-0 p-5" style={{ height: "68%" }}>
                   <div className="flex items-start justify-between gap-3">
                     <span className="inline-block rounded-md bg-white px-2 py-1 font-display font-extrabold text-[11px] tracking-[0.2em] uppercase text-night">Ticketeanu</span>
-                    <div className="flex flex-col items-end">
+                    <div className="tk-holo flex flex-col items-end">
                       <div className="h-[2px] w-20 bg-white/90" />
                       <Barcode code={p.code} className="mt-1 h-20 w-5 text-white/90" vertical />
                     </div>
                   </div>
 
-                  <div className="absolute left-5 right-5 bottom-5">
-                    <p className="eyebrow tk-holo">{p.orderCode ?? p.code}</p>
+                  {/* Tot scrisul e folie holografică pe bază inversată (.tk-holo): se citește pe orice afiș. */}
+                  <div className="tk-holo absolute left-5 right-5 bottom-5">
+                    <p className="eyebrow">{p.orderCode ?? p.code}</p>
                     {/* Mărimea ține de lățimea biletului (container), iar titlurile lungi se opresc la trei rânduri. */}
-                    <p className="headline tk-title-holo mt-1 text-[clamp(1.5rem,11.5cqw,3rem)] line-clamp-3 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">{p.title}</p>
+                    <p className="headline mt-1 text-[clamp(1.5rem,11.5cqw,3rem)] line-clamp-3">{p.title}</p>
                     <div className="mt-2 border-t-2 border-white/85" />
                     <div className="mt-2 flex items-end justify-between gap-3">
                       <p className="font-display font-extrabold text-lg leading-tight truncate">{p.subtitle ?? p.venue ?? "Intrare"}</p>
-                      <p className="shrink-0 font-display font-extrabold text-sm tk-holo">{p.timeLabel}</p>
+                      <p className="shrink-0 font-display font-extrabold text-sm">{p.timeLabel}</p>
                     </div>
                     <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
                       <div>
@@ -204,7 +205,7 @@ export function Ticket(p: TicketProps) {
                 </div>
 
                 {/* Linia de rupere */}
-                <div className="absolute inset-x-6 ticket-tear" style={{ top: "68%" }} />
+                <div className="absolute inset-x-6 ticket-tear tk-ink" style={{ top: "68%" }} />
 
                 {/* Cotorul: QR + cod */}
                 <div className="absolute inset-x-0 bottom-0 flex items-center gap-4 p-5" style={{ height: "32%" }}>
@@ -216,8 +217,8 @@ export function Ticket(p: TicketProps) {
                       <div className="size-[88px] grid place-items-center text-center text-[11px] font-semibold text-ink/70 leading-tight">{status === "cancelled" ? "Anulat" : "Plata lipsește"}</div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-mono font-bold text-base tracking-wider tk-holo">{p.code}</p>
+                  <div className="tk-holo min-w-0 flex-1">
+                    <p className="font-mono font-bold text-base tracking-wider">{p.code}</p>
                     {p.count && p.count > 1 ? (
                       <p className="eyebrow text-white/65">
                         Bilet {p.index ?? 1} din {p.count}
