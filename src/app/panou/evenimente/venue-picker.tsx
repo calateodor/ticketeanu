@@ -4,23 +4,25 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import type { Venue } from "@/db/schema";
+import { LAUNCH_CENTER } from "@/lib/launch";
 import { Button, Field, Hint, Input, Select } from "@/components/ui";
 
 type Mode = "saved" | "new" | "none";
 type Hit = { label: string; lat: number; lng: number; city: string | null; address: string | null };
 
-const BUCHAREST = { lat: 44.4325, lng: 26.1039 };
 
 export function VenuePicker({
   venues,
   initial,
   defaultCity,
   errors,
+  bare = false,
 }: {
   venues: Venue[];
   initial: { venueId: string | null; venueName: string | null; venueAddress: string | null; city: string | null };
   defaultCity?: string | null;
   errors: Record<string, string>;
+  bare?: boolean; // fără titlul „Unde” (îl pune pasul din formularul nou)
 }) {
   const [mode, setMode] = useState<Mode>(initial.venueId ? "saved" : initial.venueName || venues.length === 0 ? "new" : "saved");
   const [venueId, setVenueId] = useState(initial.venueId ?? venues[0]?.id ?? "");
@@ -62,9 +64,11 @@ export function VenuePicker({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-end justify-between gap-3">
-        <h2 className="font-bold text-lg">Unde</h2>
-      </div>
+      {bare ? null : (
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="font-bold text-lg">Unde</h2>
+        </div>
+      )}
       <input type="hidden" name="venueMode" value={mode} />
       <input type="hidden" name="venueId" value={mode === "saved" ? venueId : ""} />
       <input type="hidden" name="lat" value={mode === "new" && pos ? String(pos.lat) : ""} />
@@ -136,7 +140,7 @@ export function VenuePicker({
               ))}
             </ul>
           ) : null}
-          <DragMap pos={pos ?? BUCHAREST} placed={pos != null} onChange={setPos} className="h-56 rounded-xl overflow-hidden border border-line" />
+          <DragMap pos={pos ?? LAUNCH_CENTER} placed={pos != null} onChange={setPos} className="h-56 rounded-xl overflow-hidden border border-line" />
           <Hint>{pos ? "Trage pinul dacă nu e exact. Coordonatele se salvează odată cu evenimentul." : "Caută adresa sau apasă pe hartă ca să pui pinul. Fără pin, locul rămâne doar text și nu apare pe hartă."}</Hint>
         </div>
       ) : null}

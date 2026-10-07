@@ -48,6 +48,7 @@ Direcția completă: `docs/directie-vizuala.md` (citește-o înainte de orice sc
 - Mișcare: rapidă (0,4–0,6 s). Intrarea paginii e în CSS (`[data-hero-root] .split-w`, `[data-hero]` în `globals.css`), ca să pornească din primul cadru. `src/components/motion/reveals.tsx` face restul (GSAP + ScrollTrigger **doar ca declanșator**, `once`, fără `scrub`, fără `pin`; nimic nu mută scrollul): `data-split` sub ecran, `data-reveal`. Nu pune `data-reveal` pe elemente care se re-randează din filtre și nici pe părinții unui element `position: fixed` (transformul GSAP îl rupe).
 - Imprimanta de bilete: `TicketMachine` + `.ticket-print`: patru smucituri în 1 s (`--print`, după `--print-delay` 0,25 s), apoi biletul se rupe și cade înclinat (`printer-rip`, `--rip`) și primește stickerul (`sticker="Gata!"`). Totul în CSS. Lumina trece peste bilet la 1,25 s.
 - Panoul organizatorului rămâne luminos și curat; nu-l trece pe gradient.
+- Eveniment nou (`/panou/evenimente/nou`, `create-form.tsx`): patru pași (Ce, Când, Unde, Intrarea) cu zile rapide și cipuri, restul sub „Mai multe detalii”, biletul real alături completat în timp real, bara de butoane lipită jos. „Publică acum” (`intent=publish`) creează evenimentul publicat și duce la `?live=1` (ecranul „E live” cu linkul, `share-live.tsx`); „Salvează ca ciornă” duce la `?nou=1`. Editarea folosește în continuare `event-form.tsx`.
 
 ## Convenții
 

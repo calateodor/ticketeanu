@@ -167,6 +167,7 @@ export async function createEventAction(_prev: ActionState, formData: FormData):
   if (taken) slug = `${slug}-${shortCode(4).toLowerCase()}`;
 
   const place = await resolveVenue(ctx.organizer.id, res.venue, res.values);
+  const publish = formData.get("intent") === "publish";
   const id = newId();
   await db.insert(events).values({
     id,
@@ -175,7 +176,9 @@ export async function createEventAction(_prev: ActionState, formData: FormData):
     ...res.values,
     ...place,
     city: place.city ?? ctx.organizer.city,
-    status: "draft",
+    // „Publică acum” din formular: pagina e live din prima; altfel rămâne ciornă.
+    status: publish ? "published" : "draft",
+    publishedAt: publish ? new Date() : null,
     settings: { groupEnabled: true, waitlistEnabled: true, askPhone: true, holdMinutes: 15 },
   });
 
@@ -199,7 +202,7 @@ export async function createEventAction(_prev: ActionState, formData: FormData):
     sortOrder: 0,
   });
 
-  redirect(`/panou/evenimente/${id}?nou=1`);
+  redirect(`/panou/evenimente/${id}?${publish ? "live=1" : "nou=1"}`);
 }
 
 export async function updateEventAction(eventId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
