@@ -100,7 +100,7 @@ export default async function Home() {
                 20 de secunde
               </span>
               {maxDiscount > 0 ? (
-                <span data-drag aria-hidden="true" className="sticker sticker-orange sticker-in absolute right-0 -bottom-8 md:-right-[10%] md:bottom-[26%] text-[clamp(0.95rem,2vw,1.4rem)] [--tilt:-10deg] [--delay:1.05s]">
+                <span data-drag aria-hidden="true" className="sticker sticker-orange sticker-in absolute right-0 -bottom-8 md:right-auto md:bottom-auto md:left-[2%] md:top-[4%] text-[clamp(0.95rem,2vw,1.4rem)] [--tilt:-10deg] [--delay:1.05s]">
                   Până la -{maxDiscount}%
                 </span>
               ) : null}
