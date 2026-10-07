@@ -369,7 +369,7 @@ body {
 }
 /* Umbra sub text: titlul și cotorul se citesc pe orice afiș. */
 .tk-scrim {
-  background: linear-gradient(180deg, rgba(18, 10, 31, 0.35) 0%, rgba(18, 10, 31, 0) 22%, rgba(18, 10, 31, 0) 38%, rgba(18, 10, 31, 0.7) 66%, rgba(18, 10, 31, 0.88) 100%);
+  background: linear-gradient(180deg, rgba(18, 10, 31, 0.4) 0%, rgba(18, 10, 31, 0) 16%, rgba(18, 10, 31, 0) 24%, rgba(18, 10, 31, 0.55) 40%, rgba(18, 10, 31, 0.82) 58%, rgba(18, 10, 31, 0.9) 100%);
 }
 /* Granulația în repaus: abia simțită. */
 .tk-grain-rest {
@@ -494,13 +494,13 @@ body {
     scale: 1.06;
   }
 }
-/* Scrisul de pe bilet: folie holografică pe bază inversată.
-   - Baza: mix-blend-mode difference, adică scrisul e negativul afișului din spatele lui (deschis pe
-     zone închise, închis pe zone deschise), deci se citește pe orice poză.
-   - Folia: paleta sunpillar, deschisă (pastel), tăiată pe litere; unghiul și poziția urmează
+/* Scrisul de pe bilet: folie holografică mereu lizibilă.
+   - Folia: paleta sunpillar, foarte deschisă (pastel), tăiată pe litere; unghiul și poziția urmează
      înclinarea (--ry, --holo-y), iar culorile alunecă singure încet (--drift), ca la un card adevărat.
+   - Lizibilitatea: un contur închis, subțire, și o umbră moale în jurul literelor (drop-shadow urmează
+     forma literelor), plus umbra de sub scris (.tk-scrim). Nu depinde de cât de deschis e afișul.
    Se pune pe un bloc întreg: copiii lui iau aceeași folie (culoarea lor devine transparentă);
-   liniile și codurile de bare rămân albe și se inversează. */
+   liniile și codurile de bare rămân albe. */
 @property --drift {
   syntax: "<percentage>";
   inherits: false;
@@ -509,20 +509,20 @@ body {
 .tk-holo {
   background-image: repeating-linear-gradient(
     calc(110deg + var(--ry, 0deg) * 5),
-    hsl(2, 100%, 82%) 0%,
-    hsl(53, 100%, 80%) 6%,
-    hsl(93, 100%, 80%) 12%,
-    hsl(176, 100%, 84%) 18%,
-    hsl(228, 100%, 85%) 24%,
-    hsl(283, 100%, 85%) 30%,
-    hsl(2, 100%, 82%) 36%
+    hsl(2, 100%, 86%) 0%,
+    hsl(53, 100%, 84%) 6%,
+    hsl(93, 100%, 84%) 12%,
+    hsl(176, 100%, 87%) 18%,
+    hsl(228, 100%, 89%) 24%,
+    hsl(283, 100%, 89%) 30%,
+    hsl(2, 100%, 86%) 36%
   );
   background-size: 260% 260%;
   background-position: calc(var(--holo-y, 50%) + var(--drift)) calc(var(--holo-y, 50%) * 0.7);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  mix-blend-mode: difference;
+  filter: drop-shadow(0 0 0.6px rgba(12, 6, 24, 0.95)) drop-shadow(0 1px 1px rgba(12, 6, 24, 0.85)) drop-shadow(0 2px 10px rgba(12, 6, 24, 0.55));
   animation: tk-drift 8s linear infinite;
 }
 .tk-holo * {
@@ -536,10 +536,6 @@ body {
   to {
     --drift: 100%;
   }
-}
-/* Linii pe aceeași bază inversată (linia de rupere). */
-.tk-ink {
-  mix-blend-mode: difference;
 }
 .tk-content {
   position: absolute;

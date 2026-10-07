@@ -173,7 +173,7 @@ export function Ticket(p: TicketProps) {
                     </div>
                   </div>
 
-                  {/* Tot scrisul e folie holografică pe bază inversată (.tk-holo): se citește pe orice afiș. */}
+                  {/* Tot scrisul e folie holografică (.tk-holo), cu contur închis: se citește pe orice afiș. */}
                   <div className="tk-holo absolute left-5 right-5 bottom-5">
                     <p className="eyebrow">{p.orderCode ?? p.code}</p>
                     {/* Mărimea ține de lățimea biletului (container), iar titlurile lungi se opresc la trei rânduri. */}
@@ -205,7 +205,7 @@ export function Ticket(p: TicketProps) {
                 </div>
 
                 {/* Linia de rupere */}
-                <div className="absolute inset-x-6 ticket-tear tk-ink" style={{ top: "68%" }} />
+                <div className="absolute inset-x-6 ticket-tear" style={{ top: "68%" }} />
 
                 {/* Cotorul: QR + cod */}
                 <div className="absolute inset-x-0 bottom-0 flex items-center gap-4 p-5" style={{ height: "32%" }}>
