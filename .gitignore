@@ -53,3 +53,10 @@ next-env.d.ts
 /reports/
 /research_notes/
 /docs/strategie-ticketeanu.md
+
+.vercel
+
+# instalate de integrarea Turso din Vercel
+/.agents/
+/.claude/skills/
+skills-lock.json

@@ -3,10 +3,11 @@ import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
 function makeClient(): Client {
-  const url = process.env.DATABASE_URL ?? "file:./data/ticketeanu.db";
+  const url =
+    process.env.DATABASE_URL ?? process.env.TURSO_DATABASE_URL ?? "file:./data/ticketeanu.db";
   const client = createClient({
     url,
-    authToken: process.env.DATABASE_AUTH_TOKEN || undefined,
+    authToken: process.env.DATABASE_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN || undefined,
   });
   if (url.startsWith("file:")) {
     // Fișier local: WAL pentru citiri paralele, chei străine pornite.
