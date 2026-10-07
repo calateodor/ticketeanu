@@ -1,4 +1,5 @@
 import {
+  blob,
   index,
   integer,
   primaryKey,
@@ -127,6 +128,24 @@ export const venues = sqliteTable(
     createdAt: createdAt(),
   },
   (t) => [index("venues_org_idx").on(t.organizerId)],
+);
+
+// Afișele urcate de organizatori, ținute în baza de date (micșorate în browser înainte de urcare,
+// cel mult ~1600 px). Se servesc la /img/[id], cu cache lung. La volum mare se pot muta pe un
+// serviciu de fișiere (ex. Vercel Blob) fără să schimbe linkurile vechi.
+export const images = sqliteTable(
+  "images",
+  {
+    id: id(),
+    organizerId: text("organizer_id")
+      .notNull()
+      .references(() => organizers.id, { onDelete: "cascade" }),
+    contentType: text("content_type").notNull(),
+    bytes: integer("bytes").notNull(),
+    data: blob("data", { mode: "buffer" }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("images_org_idx").on(t.organizerId)],
 );
 
 // ---------- Evenimente ----------

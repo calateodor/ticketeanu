@@ -6,6 +6,7 @@ import { formatDayShort, formatTime, fromLocalInputValue } from "@/lib/dates";
 import { CATEGORIES, VIBES } from "@/lib/taxonomy";
 import { useNow } from "@/lib/use-now";
 import { ErrorText, Field, Input, Select, Textarea, cx } from "@/components/ui";
+import { CoverUpload } from "@/components/cover-upload";
 import { Ticket } from "@/components/ticket/ticket";
 import type { ActionState } from "./actions";
 import { VenuePicker } from "./venue-picker";
@@ -120,6 +121,9 @@ export function CreateEventForm({
           />
           {fe.title ? <ErrorText>{fe.title}</ErrorText> : null}
 
+          <p className="mt-5 mb-2 text-sm font-semibold text-ink-2">Afișul</p>
+          <CoverUpload onChange={() => sync()} error={fe.coverUrl} />
+
           <p className="mt-5 mb-2 text-sm font-semibold text-ink-2">Ce fel de eveniment</p>
           <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 no-scrollbar sm:mx-0 sm:flex-wrap sm:px-0" role="radiogroup" aria-label="Categoria">
             {CATEGORIES.map((c) => (
@@ -208,12 +212,9 @@ export function CreateEventForm({
         <details className="group rounded-(--radius-card) bg-surface border border-line p-5 md:p-6">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-bold text-lg">
             Mai multe detalii
-            <span className="text-sm font-semibold text-muted group-open:hidden">afiș, descriere, capacitate…</span>
+            <span className="text-sm font-semibold text-muted group-open:hidden">descriere, capacitate, culoare…</span>
           </summary>
           <div className="mt-5 space-y-4">
-            <Field label="Afișul (link către imagine)" htmlFor="coverUrl" error={fe.coverUrl} hint="Apare pe pagină, pe bilet și când trimiți linkul pe WhatsApp.">
-              <Input id="coverUrl" name="coverUrl" type="url" placeholder="https://…" />
-            </Field>
             <label className="flex items-start gap-2 text-sm">
               <input type="checkbox" name="ticketCover" defaultChecked className="mt-0.5 size-4 accent-stamp" />
               <span>

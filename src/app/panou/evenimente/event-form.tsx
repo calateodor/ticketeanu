@@ -6,6 +6,7 @@ import { toLocalInputValue } from "@/lib/dates";
 import { CATEGORIES, VIBES } from "@/lib/taxonomy";
 import { Button, ErrorText, Field, Input, Select, Textarea, cx } from "@/components/ui";
 import type { ActionState } from "./actions";
+import { CoverUpload } from "@/components/cover-upload";
 import { VenuePicker } from "./venue-picker";
 
 type Props = {
@@ -100,9 +101,10 @@ export function EventForm({ action, event, venues, defaultCity, mode }: Props) {
           <Textarea id="description" name="description" defaultValue={event?.description ?? ""} placeholder="Ce se întâmplă, cine cântă, reguli de acces…" />
         </Field>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
-          <Field label="Afișul (link către imagine)" htmlFor="coverUrl" error={fe.coverUrl} hint="Apare pe pagină, pe hartă și când trimiți linkul pe WhatsApp.">
-            <Input id="coverUrl" name="coverUrl" type="url" defaultValue={event?.coverUrl ?? ""} placeholder="https://…" />
-          </Field>
+          <div>
+            <p className="block text-sm font-semibold text-ink-2 mb-1.5">Afișul</p>
+            <CoverUpload defaultValue={event?.coverUrl ?? ""} error={fe.coverUrl} />
+          </div>
           <Field label="Culoarea" htmlFor="accent" error={fe.accent} hint="Din ea ies gradientul paginii și al biletului.">
             <input id="accent" name="accent" type="color" defaultValue={event?.theme?.accent ?? "#8A3DFF"} className="size-11 rounded-lg border border-line-strong bg-surface p-1" />
           </Field>

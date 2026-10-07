@@ -29,7 +29,12 @@ const eventSchema = z.object({
   title: z.string().trim().min(2, "Dă-i un nume evenimentului.").max(120),
   subtitle: optionalText(160),
   description: optionalText(5000),
-  coverUrl: z.string().trim().url("Pune un link valid către imagine (https://…).").optional().or(z.literal("")),
+  // Afișul: urcat la noi (/img/…, vezi /api/upload) sau un link https către o imagine.
+  coverUrl: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || /^\/img\/[A-Za-z0-9_-]+$/.test(v) || /^https:\/\/\S+$/.test(v), "Urcă afișul sau pune un link valid către imagine (https://…).")
+    .optional(),
   startsAt: z.string().min(1, "Când începe?"),
   endsAt: optionalText(30),
   doorsAt: optionalText(30),

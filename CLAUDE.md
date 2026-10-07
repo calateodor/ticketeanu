@@ -49,6 +49,7 @@ Direcția completă: `docs/directie-vizuala.md` (citește-o înainte de orice sc
 - Imprimanta de bilete: `TicketMachine` + `.ticket-print`: patru smucituri în 1 s (`--print`, după `--print-delay` 0,25 s), apoi biletul se rupe și cade înclinat (`printer-rip`, `--rip`) și primește stickerul (`sticker="Gata!"`). Totul în CSS. Lumina trece peste bilet la 1,25 s.
 - Panoul organizatorului rămâne luminos și curat; nu-l trece pe gradient.
 - Eveniment nou (`/panou/evenimente/nou`, `create-form.tsx`): patru pași (Ce, Când, Unde, Intrarea) cu zile rapide și cipuri, restul sub „Mai multe detalii”, biletul real alături completat în timp real, bara de butoane lipită jos. „Publică acum” (`intent=publish`) creează evenimentul publicat și duce la `?live=1` (ecranul „E live” cu linkul, `share-live.tsx`); „Salvează ca ciornă” duce la `?nou=1`. Editarea folosește în continuare `event-form.tsx`.
+- Afișe urcate (`src/components/cover-upload.tsx`): browserul le micșorează (JPEG, ≤ 1600 px), `POST /api/upload` (doar organizatori, JPG/PNG/WebP verificate după primii octeți, ≤ 3 MB) le pune în tabela `images`, iar `/img/[id]` le servește cu cache de un an. `coverUrl` e `/img/…` sau un link https. Imaginea de previzualizare a linkului (`opengraph-image.tsx`) citește afișul direct din bază. La volum mare: Vercel Blob, fără să schimbe linkurile vechi.
 
 ## Convenții
 
