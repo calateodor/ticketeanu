@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useState, type CSSProperties } from "react";
 import { reserveAction, waitlistAction, type ReserveState, type WaitlistState } from "@/app/e/[slug]/actions";
 import { compareAtPercent, discountValueLabel, pickDiscount, type DiscountRule } from "@/lib/discounts";
 import { calcFee, formatLei } from "@/lib/money";
@@ -150,9 +150,9 @@ export function Checkout(props: Props) {
       <input type="hidden" name="discountId" value={audienceId ?? ""} />
 
       <div>
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="font-display font-extrabold text-2xl">{group ? "Ia-ți locul în gașcă" : "Alege locul"}</h2>
-          <p className="eyebrow normal-case tracking-normal">prețuri finale, fără taxe ascunse</p>
+        <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 mb-4">
+          <h2 className="headline text-[2.4rem]">{group ? "Ia-ți locul în gașcă" : "Alege locul"}</h2>
+          <p className="text-xs font-semibold text-white/60">prețuri finale, fără taxe ascunse</p>
         </div>
         <ul className="space-y-2">
           {selectable.map((t) => {
@@ -162,50 +162,55 @@ export function Checkout(props: Props) {
             const pct = t.mode === "free" ? null : compareAtPercent(t.priceBani, t.compareAtBani);
             const compareShown = pct && t.compareAtBani ? (t.mode === "door" ? t.compareAtBani : withFee(t.mode === "deposit" ? t.paidNowBani : t.compareAtBani)) : null;
             return (
-              <li key={t.id} className={cx("rounded-2xl border p-4 transition-colors", q > 0 ? "border-[var(--accent)] glass-strong" : "border-white/10 glass", disabled && "opacity-60")}>
+              <li
+                key={t.id}
+                className={cx("stub-h relative grid grid-cols-[1fr_var(--tear)] transition-colors", disabled && "opacity-60")}
+                style={q > 0 ? ({ "--stub-bg": "color-mix(in srgb, var(--accent) 30%, var(--color-night-3))" } as CSSProperties) : undefined}
+              >
                 <input type="hidden" name={`qty[${t.id}]`} value={q} />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-bold text-lg leading-tight">
-                      {t.name}
-                      {t.phaseName ? <span className="ml-2 text-xs font-semibold uppercase tracking-wider text-night-muted">{t.phaseName}</span> : null}
-                      {pct ? <span className="ml-2 inline-block rounded-md bg-lime text-night text-xs font-extrabold px-1.5 py-0.5 -rotate-2 align-middle">-{pct}%</span> : null}
+                <span className="absolute top-3 bottom-3 border-l-2 border-dashed border-white/20" style={{ right: "var(--tear)" }} aria-hidden="true" />
+                <div className="min-w-0 p-4">
+                  <p className="font-bold text-lg leading-tight">
+                    {t.name}
+                    {t.phaseName ? <span className="ml-2 text-xs font-semibold uppercase tracking-wider text-white/55">{t.phaseName}</span> : null}
+                  </p>
+                  <p className="text-sm text-white/65 mt-0.5">
+                    {t.mode === "free"
+                      ? "Gratuit, pe listă"
+                      : t.mode === "door"
+                        ? `${formatLei(t.priceBani)} la intrare, nimic acum`
+                        : t.mode === "deposit"
+                          ? `${formatLei(price)} acum, ${formatLei(t.dueAtDoorBani)} la intrare`
+                          : "Plată online"}
+                  </p>
+                  {t.description ? <p className="text-sm mt-1 text-white/80">{t.description}</p> : null}
+                  {disabled ? (
+                    <p className="text-sm mt-1 font-semibold" style={{ color: "var(--accent)" }}>
+                      {t.reason}
                     </p>
-                    <p className="text-sm text-night-muted mt-0.5">
-                      {t.mode === "free"
-                        ? "Gratuit, pe listă"
-                        : t.mode === "door"
-                          ? `${formatLei(t.priceBani)} la intrare, fără plată acum`
-                          : t.mode === "deposit"
-                            ? `${formatLei(price)} acum, ${formatLei(t.dueAtDoorBani)} la intrare`
-                            : "Plată online"}
+                  ) : t.remaining != null && t.remaining <= 10 && t.lowSeatsHint ? (
+                    <p className="text-sm mt-1 font-semibold" style={{ color: "var(--accent)" }}>
+                      {t.remaining === 1 ? "Ultimul loc" : `Mai sunt ${t.remaining}`}
                     </p>
-                    {t.description ? <p className="text-sm mt-1 text-white/80">{t.description}</p> : null}
-                    {disabled ? (
-                      <p className="text-sm mt-1 font-semibold" style={{ color: "var(--accent)" }}>
-                        {t.reason}
-                      </p>
-                    ) : t.remaining != null && t.remaining <= 10 && t.lowSeatsHint ? (
-                      <p className="text-sm mt-1 font-semibold" style={{ color: "var(--accent)" }}>
-                        {t.remaining === 1 ? "Ultimul loc" : `Mai sunt ${t.remaining}`}
-                      </p>
-                    ) : null}
+                  ) : null}
+                </div>
+                <div className="flex flex-col items-center justify-center gap-2 px-2 py-3 text-center">
+                  <div className="leading-none">
+                    {pct ? <span className="sticker mb-1 text-[11px] [--tilt:-5deg]">-{pct}%</span> : null}
+                    {compareShown && t.mode !== "deposit" ? <p className="text-xs text-white/50 line-through tabular">{formatLei(compareShown)}</p> : null}
+                    <p className="headline text-[1.7rem]">{t.mode === "free" ? "0 lei" : t.mode === "door" ? formatLei(t.priceBani) : formatLei(price)}</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    {compareShown && t.mode !== "deposit" ? <p className="text-sm text-night-muted line-through tabular">{formatLei(compareShown)}</p> : null}
-                    <p className="font-display font-extrabold text-xl">{t.mode === "free" ? "0 lei" : t.mode === "door" ? formatLei(t.priceBani) : formatLei(price)}</p>
-                    {!disabled ? (
-                      <div className="mt-2 inline-flex items-center rounded-xl border border-white/15 bg-night">
-                        <button type="button" aria-label={`Mai puține ${t.name}`} onClick={() => setQ(t, q - 1)} disabled={q <= 0} className="size-10 text-xl disabled:opacity-30">
-                          −
-                        </button>
-                        <span className="w-8 text-center font-bold tabular">{q}</span>
-                        <button type="button" aria-label={`Mai multe ${t.name}`} onClick={() => setQ(t, q + 1 < t.minPerOrder ? t.minPerOrder : q + 1)} className="size-10 text-xl">
-                          +
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
+                  {!disabled ? (
+                    <div className="inline-flex items-center rounded-full bg-night ring-1 ring-white/15">
+                      <button type="button" aria-label={`Mai puține ${t.name}`} onClick={() => setQ(t, q - 1)} disabled={q <= 0} className="size-9 text-xl disabled:opacity-30">
+                        −
+                      </button>
+                      <span className="w-6 text-center font-bold tabular">{q}</span>
+                      <button type="button" aria-label={`Mai multe ${t.name}`} onClick={() => setQ(t, q + 1 < t.minPerOrder ? t.minPerOrder : q + 1)} className="size-9 text-xl">
+                        +
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </li>
             );
@@ -214,8 +219,8 @@ export function Checkout(props: Props) {
       </div>
 
       {hasDiscountBlock ? (
-        <div className="rounded-2xl glass p-4 space-y-3">
-          <p className="font-display font-extrabold text-xl">Reduceri</p>
+        <div className="rounded-2xl bg-night-3 p-4 space-y-3">
+          <p className="headline text-2xl">Reduceri</p>
           {timedRules.map((r) => (
             <div key={r.id} className="flex items-center justify-between gap-3 rounded-xl bg-lime text-night px-3 py-2">
               <p className="font-bold">
@@ -284,11 +289,11 @@ export function Checkout(props: Props) {
       ) : null}
 
       {canGroup ? (
-        <div className={cx("rounded-2xl border p-4", withGroup ? "border-[var(--accent)] glass-strong" : "border-white/10 glass")}>
+        <div className={cx("rounded-2xl p-4 ring-1", withGroup ? "ring-[var(--accent)] bg-night-3" : "ring-white/10 bg-night-3")}>
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" name="withGroup" checked={withGroup} onChange={(e) => setWithGroup(e.target.checked)} className="mt-1 size-5 accent-[var(--accent)]" />
             <span>
-              <span className="font-bold text-lg block leading-tight">Vin cu gașca</span>
+              <span className="headline text-2xl block">Vin cu gașca</span>
               <span className="text-sm text-night-muted">
                 Ținem locuri și pentru prietenii tăi, {props.groupHoldHours} de ore. Le trimiți un link în grup și fiecare își plătește locul lui.
               </span>
@@ -319,7 +324,7 @@ export function Checkout(props: Props) {
       ) : null}
 
       <div className="space-y-3">
-        <h2 className="font-display font-extrabold text-2xl">Pe cine trecem pe listă</h2>
+        <h2 className="headline text-[2rem]">Pe cine trecem pe listă</h2>
         <input name="name" className="field" placeholder="Numele tău" autoComplete="name" required />
         <input name="email" type="email" className="field" placeholder="E-mail (aici vin biletele)" autoComplete="email" inputMode="email" />
         {props.askPhone ? <input name="phone" type="tel" className="field" placeholder="Telefon" autoComplete="tel" inputMode="tel" /> : null}
@@ -337,7 +342,7 @@ export function Checkout(props: Props) {
       </div>
 
       {totals.seats > 0 ? (
-        <div className="rounded-2xl glass p-4 text-sm space-y-1">
+        <div className="rounded-2xl bg-night-3 p-4 text-sm space-y-1">
           <div className="flex justify-between">
             <span className="text-night-muted">{totals.seats === 1 ? "1 loc" : `${totals.seats} locuri`}</span>
             <span className="tabular">{totals.total > 0 ? formatLei(totals.total) : totals.door > 0 ? "0 lei acum" : "gratuit"}</span>
@@ -373,10 +378,13 @@ export function Checkout(props: Props) {
       <button
         type="submit"
         disabled={pending || totals.seats === 0}
-        className="w-full rounded-2xl py-4 text-lg font-bold text-white transition-transform duration-150 active:scale-[0.99] disabled:opacity-50 shadow-[0_12px_40px_-12px_var(--accent)]"
+        className="group w-full inline-flex items-center justify-between gap-3 rounded-full pl-6 pr-2 py-2 text-lg font-bold text-white transition-transform duration-150 active:scale-[0.99] disabled:opacity-50 shadow-[0_12px_40px_-12px_var(--accent)]"
         style={{ background: "var(--accent)" }}
       >
         {ctaLabel}
+        <span className="grid size-11 place-items-center rounded-full bg-night/30 transition-transform duration-200 group-enabled:group-hover:-rotate-45" aria-hidden="true">
+          →
+        </span>
       </button>
       <p className="text-xs text-night-muted text-center">
         {totals.total > 0 ? "Plata e cu cardul, pe o pagină sigură. " : ""}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CatalogItem } from "@/lib/catalog-types";
+import { LAUNCH_CENTER } from "@/lib/launch";
 import { CATEGORIES, VIBES } from "@/lib/taxonomy";
 import { EventCard } from "@/components/event/event-card";
 import { EventMap } from "@/components/event/event-map";
@@ -9,10 +10,13 @@ import { cx } from "@/components/ui";
 
 type Pos = { lat: number; lng: number };
 
-const BUCHAREST: Pos = { lat: 44.4325, lng: 26.1039 };
+
 const NEAR_KM = 30; // „în zona ta”
 const GEO_OPTS: PositionOptions = { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 };
 const LIME = "#e9ff4f";
+
+// Căutarea ignoră diacriticele și majusculele: „sala” găsește „Sală”.
+const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 function distanceKm(a: Pos, b: Pos): number {
   const R = 6371;
@@ -22,7 +26,8 @@ function distanceKm(a: Pos, b: Pos): number {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-export function Catalog({ items, cities, initial }: { items: CatalogItem[]; cities: { city: string; count: number }[]; initial: { category?: string | null; vibe?: string | null; discounted?: boolean; city?: string | null; map?: boolean } }) {
+export function Catalog({ items, cities, initial }: { items: CatalogItem[]; cities: { city: string; count: number }[]; initial: { category?: string | null; vibe?: string | null; discounted?: boolean; city?: string | null; map?: boolean; q?: string | null } }) {
+  const [q, setQ] = useState(initial.q ?? "");
   const [category, setCategory] = useState<string | null>(initial.category ?? null);
   const [vibe, setVibe] = useState<string | null>(initial.vibe ?? null);
   const [discounted, setDiscounted] = useState(Boolean(initial.discounted));
@@ -35,7 +40,11 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
   const [view, setView] = useState<"list" | "map">(initial.map ? "map" : "list");
 
   const filtered = useMemo(() => {
-    let list = items.filter((i) => (!category || i.category === category) && (!vibe || i.vibe === vibe) && (!discounted || i.hasDiscount) && (!city || i.city === city));
+    const words = norm(q).split(/\s+/).filter(Boolean);
+    const hay = (i: CatalogItem) => norm([i.title, i.subtitle, i.venueName, i.city, i.organizerName].filter(Boolean).join(" "));
+    let list = items.filter(
+      (i) => (!category || i.category === category) && (!vibe || i.vibe === vibe) && (!discounted || i.hasDiscount) && (!city || i.city === city) && words.every((w) => hay(i).includes(w)),
+    );
     if (userPos) {
       list = [...list].sort((a, b) => {
         const da = a.lat != null && a.lng != null ? distanceKm(userPos, { lat: a.lat, lng: a.lng }) : Infinity;
@@ -44,7 +53,7 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
       });
     }
     return list;
-  }, [items, category, vibe, discounted, city, userPos]);
+  }, [items, category, vibe, discounted, city, userPos, q]);
 
   const points = useMemo(
     () => filtered.filter((i) => i.lat != null && i.lng != null).map((i) => ({ id: i.id, lat: i.lat!, lng: i.lng!, vibe: i.vibe, heat: i.heat, title: i.title })),
@@ -53,7 +62,7 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
 
   const center = useMemo<Pos>(() => {
     if (userPos) return userPos;
-    if (points.length === 0) return BUCHAREST;
+    if (points.length === 0) return LAUNCH_CENTER;
     const lat = points.reduce((s, p) => s + p.lat, 0) / points.length;
     const lng = points.reduce((s, p) => s + p.lng, 0) / points.length;
     return { lat, lng };
@@ -107,9 +116,10 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
     if (discounted) sp.set("reduceri", "1");
     if (city) sp.set("oras", city);
     if (view === "map") sp.set("harta", "1");
-    const q = sp.toString();
-    window.history.replaceState(null, "", q ? `/evenimente?${q}` : "/evenimente");
-  }, [category, vibe, discounted, city, view]);
+    if (q.trim()) sp.set("q", q.trim());
+    const qs = sp.toString();
+    window.history.replaceState(null, "", qs ? `/evenimente?${qs}` : "/evenimente");
+  }, [category, vibe, discounted, city, view, q]);
 
   const chipCls = (active: boolean) =>
     cx("rounded-full px-3 py-1.5 text-sm font-semibold border whitespace-nowrap transition-colors", active ? "bg-white text-night border-white" : "border-white/15 text-night-muted hover:text-white hover:border-white/40");
@@ -140,7 +150,14 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
         </p>
       ) : null}
 
-      <div className="mt-6 space-y-2">
+      <div className="mt-5">
+        <label htmlFor="cq" className="sr-only">
+          Caută
+        </label>
+        <input id="cq" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Caută: petrecere, club, artist, oraș…" className="field rounded-full! px-5!" />
+      </div>
+
+      <div className="mt-3 space-y-2">
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
           <button type="button" onClick={() => setCategory(null)} className={chipCls(!category)}>
             Toate

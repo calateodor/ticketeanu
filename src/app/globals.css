@@ -465,7 +465,8 @@ body {
    fantă. Toate pe aceleași variabile (--print, --print-delay, --rip). */
 .printer {
   --print: 1s;
-  --print-delay: 0.25s;
+  /* --print-wait (pe un părinte) schimbă pauza de intrare: 0 la retipăriri. */
+  --print-delay: var(--print-wait, 0.25s);
   --rip: 0.45s;
   position: relative;
 }
@@ -686,6 +687,22 @@ body {
   mask:
     radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
     radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px));
+  mask-composite: intersect;
+}
+/* Biletul orizontal din rezervare: cotorul (prețul și butoanele) e în dreapta, lat de --tear;
+   crestăturile stau sus și jos, pe linia de rupere. */
+.stub-h {
+  --tear: 7.75rem;
+  --n: 10px;
+  background: var(--stub-bg, var(--color-night-3));
+  border-radius: 18px;
+  -webkit-mask:
+    radial-gradient(circle at calc(100% - var(--tear)) 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
+    radial-gradient(circle at calc(100% - var(--tear)) 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at calc(100% - var(--tear)) 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
+    radial-gradient(circle at calc(100% - var(--tear)) 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px));
   mask-composite: intersect;
 }
 /* Conturul cardului ales pe hartă urmează crestăturile (un outline ar fi tăiat de mască). */
