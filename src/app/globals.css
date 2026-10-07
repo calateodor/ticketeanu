@@ -65,32 +65,37 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2,
-h3,
-.display {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
+@layer base {
+  h1,
+  h2,
+  h3,
+  .display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 }
 
-/* Titlurile mari, condensate, ca pe afișe: Bricolage pe axa de lățime, la 75%. */
-.headline {
-  font-family: var(--font-display);
-  font-stretch: 75%;
-  font-weight: 800;
-  text-transform: uppercase;
-  line-height: 0.9;
-  letter-spacing: -0.01em;
-  text-wrap: balance;
-}
+/* În stratul de componente: utilitarele Tailwind (truncate, leading-*, text-*) le pot suprascrie. */
+@layer components {
+  /* Titlurile mari, condensate, ca pe afișe: Bricolage pe axa de lățime, la 75%. */
+  .headline {
+    font-family: var(--font-display);
+    font-stretch: 75%;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 0.88;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
 
-/* Etichetele mici, mono, ca pe bilete și pe afișe */
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-night-muted);
+  /* Etichetele mici, mono, ca pe bilete și pe afișe */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-night-muted);
+  }
 }
 
 /* Text cu gradientul site-ului */
@@ -114,6 +119,32 @@ h3,
   will-change: transform;
 }
 
+/* Intrarea paginii, din CSS ca să pornească din primul cadru: cuvintele titlului urcă din mască
+   (--wi = al câtelea cuvânt), apoi restul elementelor marcate cu data-hero. */
+[data-hero-root] .split-w {
+  animation: word-up 0.6s cubic-bezier(0.2, 0.9, 0.1, 1) calc(var(--wi, 0) * 60ms + 40ms) both;
+}
+[data-hero] {
+  animation: hero-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+}
+@keyframes word-up {
+  from {
+    transform: translateY(110%);
+  }
+}
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-root] .split-w,
+  [data-hero] {
+    animation: none;
+  }
+}
+
 /* Slide-ul: panoul mare cu gradient din referința „Site colors” (violet sus, roz, portocaliu jos),
    pe pânza de noapte. Elementul trebuie poziționat de cel care îl folosește (relative). */
 .slide {
@@ -131,6 +162,45 @@ h3,
     linear-gradient(180deg, #2a1150 0%, #1b0c34 100%);
   isolation: isolate;
   overflow: hidden;
+}
+
+/* A treia variantă, caldă: roz → portocaliu pe diagonală, cu violet sus în colț. */
+.slide-warm {
+  border-radius: clamp(1.75rem, 3.2vw, 2.75rem);
+  background:
+    radial-gradient(90% 80% at 0% 0%, rgba(123, 47, 224, 0.9) 0%, rgba(123, 47, 224, 0) 55%),
+    linear-gradient(135deg, #c42fd0 0%, #ff3d8a 45%, #ff7a3d 100%);
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Linia subțire cu puncte lămâie, ca pe slide-urile din referință: o secvență reală (pași). */
+.rail {
+  position: relative;
+  padding-left: 1.4rem;
+}
+.rail::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.45);
+}
+.rail > li {
+  position: relative;
+}
+.rail > li::before {
+  content: "";
+  position: absolute;
+  left: calc(-1.4rem);
+  top: 0.32em;
+  width: 9px;
+  height: 9px;
+  border-radius: 99px;
+  background: var(--color-lime);
+  box-shadow: 0 0 0 3px rgba(233, 255, 79, 0.22);
 }
 
 /* Pânza de noapte a paginilor publice */
@@ -390,12 +460,13 @@ h3,
 }
 
 /* ---------- Imprimanta de bilete ----------
-   Biletul iese în trepte (avans, pauză, avans…), ca la o imprimantă termică: 11 avansuri scurte
-   în 3,2 s, apoi o mică așezare. Carcasa vibrează cât tipărește, LED-ul clipește, iar la fantă
-   arde linia capului de tipărire. Toate pe aceeași durată (--print). */
+   Rapidă: biletul iese în patru smucituri într-o secundă, se rupe și cade puțin înclinat, apoi
+   i se lipește stickerul. Carcasa vibrează cât tipărește, LED-ul clipește, linia capului arde la
+   fantă. Toate pe aceleași variabile (--print, --print-delay, --rip). */
 .printer {
-  --print: 3.2s;
-  --print-delay: 0.5s;
+  --print: 1s;
+  --print-delay: 0.25s;
+  --rip: 0.45s;
   position: relative;
 }
 .printer-head {
@@ -408,17 +479,17 @@ h3,
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 24px 40px -18px rgba(0, 0, 0, 0.9);
-  animation: printer-buzz var(--print) steps(40) var(--print-delay) both;
+  animation: printer-buzz var(--print) steps(24) var(--print-delay) both;
 }
 .printer-label {
   position: absolute;
   left: 18px;
-  top: 12px;
+  top: 11px;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
 }
 .printer-led {
   position: absolute;
@@ -429,7 +500,7 @@ h3,
   border-radius: 99px;
   background: var(--color-lime);
   box-shadow: 0 0 10px var(--color-lime);
-  animation: printer-led 0.32s steps(2) var(--print-delay) 10 both;
+  animation: printer-led 0.125s steps(2) var(--print-delay) 8 both;
 }
 .printer-slot {
   position: absolute;
@@ -453,46 +524,49 @@ h3,
   opacity: 0;
   animation: printer-beam var(--print) linear var(--print-delay) both;
 }
-/* Hârtia iese de sub fantă: zona de sub carcasă taie ce n-a ieșit încă. */
+/* Hârtia iese de sub fantă. clip-path taie doar marginea de sus (fanta): când biletul se rupe și
+   se înclină, colțurile pot ieși din cutie. */
 .printer-feed {
   position: relative;
   z-index: 1;
   margin: -14px 18px 0;
   padding: 14px 0 24px;
-  overflow: hidden;
+  clip-path: inset(0 -80px -120px -80px);
+  transform-origin: 50% 0;
+  animation: printer-rip var(--rip) cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--print-delay) + var(--print)) both;
+}
+/* Stickerul care se lipește pe bilet după ce s-a rupt. */
+.printer-sticker {
+  position: absolute;
+  z-index: 3;
+  right: -12px;
+  top: 15%;
+  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+  animation: sticker-slap 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) calc(var(--print-delay) + var(--print) + var(--rip) * 0.6) backwards;
 }
 .ticket-print {
-  animation: ticket-print var(--print, 3.2s) var(--print-delay, 0.5s) both;
+  animation: ticket-print var(--print, 1s) var(--print-delay, 0.25s) both;
 }
 @keyframes ticket-print {
-  0% { transform: translateY(-101%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  7% { transform: translateY(-92%); }
-  10% { transform: translateY(-92%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  17% { transform: translateY(-83%); }
-  20% { transform: translateY(-83%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  27% { transform: translateY(-74%); }
-  30% { transform: translateY(-74%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  37% { transform: translateY(-65%); }
-  40% { transform: translateY(-65%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  47% { transform: translateY(-56%); }
-  50% { transform: translateY(-56%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  57% { transform: translateY(-46%); }
-  60% { transform: translateY(-46%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  67% { transform: translateY(-36%); }
-  70% { transform: translateY(-36%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  76% { transform: translateY(-26%); }
-  79% { transform: translateY(-26%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  85% { transform: translateY(-15%); }
-  88% { transform: translateY(-15%); animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1); }
-  94% { transform: translateY(-4%); }
-  96% { transform: translateY(-4%); animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+  0% { transform: translateY(-101%); animation-timing-function: cubic-bezier(0.5, 0, 0.1, 1); }
+  16% { transform: translateY(-76%); }
+  24% { transform: translateY(-76%); animation-timing-function: cubic-bezier(0.5, 0, 0.1, 1); }
+  40% { transform: translateY(-51%); }
+  48% { transform: translateY(-51%); animation-timing-function: cubic-bezier(0.5, 0, 0.1, 1); }
+  64% { transform: translateY(-26%); }
+  72% { transform: translateY(-26%); animation-timing-function: cubic-bezier(0.3, 0, 0.1, 1.2); }
   100% { transform: translateY(0); }
+}
+@keyframes printer-rip {
+  0% { transform: none; }
+  40% { transform: translateY(18px) rotate(-4.5deg); }
+  100% { transform: translateY(10px) rotate(-2.5deg); }
 }
 @keyframes printer-buzz {
   0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(0.4px, -0.3px); }
-  50% { transform: translate(-0.4px, 0.3px); }
-  75% { transform: translate(0.3px, 0.4px); }
+  25% { transform: translate(0.6px, -0.4px); }
+  50% { transform: translate(-0.6px, 0.4px); }
+  75% { transform: translate(0.4px, 0.6px); }
 }
 @keyframes printer-led {
   from { opacity: 1; }
@@ -502,6 +576,174 @@ h3,
   0% { opacity: 0; }
   4%, 92% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* ---------- Stickere ----------
+   Etichete lipite: culoare plină, contur alb tăiat ca la autocolante, umbră scurtă, înclinate.
+   Înclinarea vine din --tilt; mutarea (stickerele care se trag cu degetul) din --dx/--dy. */
+@layer components {
+  .sticker {
+    --tilt: -5deg;
+    --sticker-bg: var(--color-lime);
+    --sticker-fg: var(--color-night);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.42em 0.66em 0.36em;
+    border-radius: 0.5em;
+    background: var(--sticker-bg);
+    color: var(--sticker-fg);
+    font-family: var(--font-display);
+    font-stretch: 75%;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 0.95;
+    white-space: nowrap;
+    box-shadow:
+      0 0 0 0.15em #fff,
+      0 0.55em 1.2em -0.4em rgba(0, 0, 0, 0.7);
+    rotate: var(--tilt);
+    translate: var(--dx, 0) var(--dy, 0);
+  }
+  .sticker-pink {
+    --sticker-bg: var(--color-sun-2);
+  }
+  .sticker-orange {
+    --sticker-bg: var(--color-sun-1);
+  }
+  .sticker-violet {
+    --sticker-bg: var(--color-sun-3);
+    --sticker-fg: #fff;
+  }
+  .sticker-white {
+    --sticker-bg: #fff;
+    box-shadow:
+      0 0 0 0.15em var(--color-night),
+      0 0.55em 1.2em -0.4em rgba(0, 0, 0, 0.7);
+  }
+}
+.sticker-in {
+  animation: sticker-slap 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) var(--delay, 0.6s) backwards;
+}
+@keyframes sticker-slap {
+  0% {
+    opacity: 0;
+    scale: 2.6;
+    rotate: 14deg;
+  }
+  60% {
+    opacity: 1;
+    scale: 0.92;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: var(--tilt);
+  }
+}
+/* Stickerele de pe prima pagină se pot muta (drag-stickers.tsx). */
+[data-drag] {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: scale 0.15s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+[data-drag].is-dragging {
+  cursor: grabbing;
+  scale: 1.1;
+  z-index: 30;
+}
+
+/* ---------- Biletul-card ----------
+   Două bucăți lipite: sus afișul și titlul, jos cotorul. Fiecare bucată are
+   crestăturile la marginea ei, deci linia de rupere stă mereu unde se întâlnesc. */
+.stub-top,
+.stub-bot {
+  --n: 11px;
+  background: var(--stub-bg, var(--color-night-2));
+  color: #fff;
+}
+.stub-top {
+  border-radius: 20px 20px 0 0;
+  -webkit-mask:
+    radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
+    radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
+    radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px));
+  mask-composite: intersect;
+}
+.stub-bot {
+  border-radius: 0 0 20px 20px;
+  -webkit-mask:
+    radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
+    radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)),
+    radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px));
+  mask-composite: intersect;
+}
+/* Conturul cardului ales pe hartă urmează crestăturile (un outline ar fi tăiat de mască). */
+.stub-selected {
+  filter: drop-shadow(3px 0 0 var(--color-lime)) drop-shadow(-3px 0 0 var(--color-lime)) drop-shadow(0 3px 0 var(--color-lime)) drop-shadow(0 -3px 0 var(--color-lime));
+}
+
+/* ---------- Benzi care curg ----------
+   Conținutul e pus de două ori; banda se mută cu o jumătate și o ia de la capăt. Se oprește sub
+   cursor; cu reduced motion stă pe loc și se derulează cu mâna. */
+.marquee {
+  overflow: hidden;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--dur, 40s) linear infinite;
+}
+.marquee[data-dir="rev"] .marquee-track {
+  animation-direction: reverse;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Bandă adezivă, pusă strâmb peste pagină */
+.tape {
+  rotate: -2deg;
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* Afișul de pe prima pagină: posterul evenimentului urmează cursorul peste rând. */
+.lineup-peek {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 40;
+  width: 230px;
+  aspect-ratio: 4 / 5;
+  border-radius: 18px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.5;
+  box-shadow:
+    0 0 0 4px #fff,
+    0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  transition:
+    opacity 0.15s,
+    scale 0.25s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.lineup-peek.on {
+  opacity: 1;
+  scale: 1;
 }
 
 /* Biletul iese din aparat (varianta veche, scurtă): alunecă de sub fantă, cu o mică revenire. */
@@ -607,9 +849,21 @@ h3,
   .printer-head,
   .printer-led,
   .printer-beam,
+  .printer-feed,
+  .printer-sticker,
+  .sticker-in,
   .fade-up,
   .pin-hot::before {
     animation: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  .marquee {
+    overflow-x: auto;
+  }
+  .lineup-peek {
+    display: none;
   }
 }
 

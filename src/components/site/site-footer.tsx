@@ -3,9 +3,9 @@ import { Logo } from "@/components/ui";
 
 export function SiteFooter() {
   return (
-    <footer className="max-w-7xl mx-auto px-4 pt-16 pb-10">
-      <div className="grid gap-8 md:grid-cols-[1.4fr_1fr_1fr] border-t border-white/10 pt-10">
-        <div>
+    <footer className="max-w-7xl mx-auto px-4 pt-12 pb-10">
+      <div className="grid grid-cols-2 gap-8 md:grid-cols-[1.4fr_1fr_1fr] border-t border-white/10 pt-10">
+        <div className="col-span-2 md:col-span-1">
           <Logo dark />
           <p className="mt-3 text-sm text-night-muted max-w-xs">Bilete și rezervări pentru petreceri, concerte și seri în oraș. Prețul de pe ecran e prețul plătit.</p>
         </div>
@@ -55,7 +55,10 @@ export function SiteFooter() {
           </ul>
         </nav>
       </div>
-      <p className="mt-10 text-xs text-night-muted">© {new Date().getFullYear()} Ticketeanu</p>
+      <p className="headline text-sunset mt-10 text-[clamp(4rem,22.5vw,19rem)] leading-[0.8] select-none" aria-hidden="true">
+        Ticketeanu
+      </p>
+      <p className="mt-4 text-xs text-night-muted">© {new Date().getFullYear()} Ticketeanu</p>
     </footer>
   );
 }

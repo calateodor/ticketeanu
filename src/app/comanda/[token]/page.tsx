@@ -75,7 +75,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/co
         <TicketMachine>
           <ul className="grid gap-5">
             {qrs.map(({ ticket, dataUrl }, i) => (
-              <li key={ticket.id} style={isNew && i > 0 ? ({ animationDelay: `${3600 + i * 140}ms` } as CSSProperties) : undefined} className={isNew ? (i === 0 ? "ticket-print" : "fade-up") : undefined}>
+              <li key={ticket.id} style={isNew && i > 0 ? ({ animationDelay: `${1400 + i * 120}ms` } as CSSProperties) : undefined} className={isNew ? (i === 0 ? "ticket-print" : "fade-up") : undefined}>
                 <Ticket
                   title={event.title}
                   subtitle={event.subtitle}

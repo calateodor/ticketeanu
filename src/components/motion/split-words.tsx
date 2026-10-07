@@ -1,10 +1,14 @@
+import type { CSSProperties } from "react";
+
 // Titlu care intră cuvânt cu cuvânt. Textul întreg rămâne pentru cititoarele de ecran (sr-only);
 // cuvintele despărțite sunt doar decor (aria-hidden). Fără JS, cuvintele stau la locul lor, vizibile.
 // Rânduri: separă cu „\n” ca să forțezi trecerea pe rândul următor.
+// Fiecare cuvânt primește --wi (al câtelea e): în hero intră din CSS, fără să aștepte GSAP.
 // wordClassName se pune pe fiecare cuvânt: un gradient pe text (.text-sunset) pus pe container nu trece
 // prin cuvintele animate separat, care sunt inline-block cu transform.
 export function SplitWords({ text, className, wordClassName }: { text: string; className?: string; wordClassName?: string }) {
   const lines = text.split("\n");
+  const offsets = lines.map((_, li) => lines.slice(0, li).reduce((n, l) => n + l.split(" ").length, 0));
   return (
     <>
       <span className="sr-only">{lines.join(" ")}</span>
@@ -16,7 +20,9 @@ export function SplitWords({ text, className, wordClassName }: { text: string; c
               <span key={wi}>
                 {wi > 0 ? " " : null}
                 <span className="split-mask">
-                  <span className={wordClassName ? `split-w ${wordClassName}` : "split-w"}>{w}</span>
+                  <span className={wordClassName ? `split-w ${wordClassName}` : "split-w"} style={{ "--wi": offsets[li] + wi } as CSSProperties}>
+                    {w}
+                  </span>
                 </span>
               </span>
             ))}

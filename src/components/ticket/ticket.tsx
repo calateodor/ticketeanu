@@ -76,7 +76,7 @@ function useSparkle(animateIn: boolean) {
         target = { x: -0.9 + 1.8 * e, y: -0.45 + 0.9 * e };
         if (p > 0.92) target = { x: 0, y: 0 };
       }
-      const k = 1 - Math.exp(-dt / 0.12);
+      const k = 1 - Math.exp(-dt / 0.08);
       cur.x += (target.x - cur.x) * k;
       cur.y += (target.y - cur.y) * k;
       write(cur);
@@ -85,10 +85,10 @@ function useSparkle(animateIn: boolean) {
 
     const startSweep = () => {
       sweepFrom = performance.now();
-      sweepUntil = sweepFrom + 1700;
+      sweepUntil = sweepFrom + 1000;
     };
-    // Lumina trece peste bilet după ce imprimanta a terminat (.ticket-print durează 3,2 s).
-    const sweepTimer = window.setTimeout(startSweep, animateIn ? 3300 : 350);
+    // Lumina trece peste bilet cum iese din imprimantă (.ticket-print: 0,25 s pauză + 1 s).
+    const sweepTimer = window.setTimeout(startSweep, animateIn ? 1250 : 300);
     raf = requestAnimationFrame(tick);
 
     // Desktop: cursorul peste bilet.
@@ -238,9 +238,10 @@ export function Ticket(p: TicketProps) {
   );
 }
 
-// Imprimanta de bilete: carcasa cu fantă, LED și eticheta; biletul iese pe dedesubt, în trepte.
-// Totul e CSS (.printer-*, .ticket-print), sincronizat pe aceeași durată: merge și fără JS.
-export function TicketMachine({ children, label = "Ticketeanu · print" }: { children: React.ReactNode; label?: string }) {
+// Imprimanta de bilete: carcasa cu fantă, LED și eticheta; biletul iese pe dedesubt în patru
+// smucituri, se rupe, cade puțin înclinat și i se lipește stickerul. Totul e CSS (.printer-*,
+// .ticket-print), pe aceleași variabile: merge și fără JS.
+export function TicketMachine({ children, label = "Ticketeanu · print", sticker }: { children: React.ReactNode; label?: string; sticker?: string }) {
   return (
     <div className="printer">
       <div className="printer-head" aria-hidden="true">
@@ -251,6 +252,11 @@ export function TicketMachine({ children, label = "Ticketeanu · print" }: { chi
         </div>
       </div>
       <div className="printer-feed">{children}</div>
+      {sticker ? (
+        <span className="printer-sticker sticker [--tilt:-9deg]" aria-hidden="true">
+          {sticker}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -2,9 +2,11 @@ import Link from "next/link";
 import type { CatalogItem } from "@/lib/catalog-types";
 import { formatDayShort, formatTime } from "@/lib/dates";
 import { formatLei } from "@/lib/money";
+import { categoryLabel, heatOf, vibeOf } from "@/lib/taxonomy";
 import { cx } from "@/components/ui";
-import { CategoryChip, DiscountBadge, HeatMeter, VibeChip } from "./chips";
 
+// Cardul de eveniment e un bilet: sus afișul și titlul, jos cotorul cu prețul, despărțite de linia
+// de rupere cu crestături (.stub-top / .stub-bot). Stickerele spun ziua, reducerea și cât fierbe.
 export function EventCard({
   item,
   distanceKm,
@@ -21,8 +23,8 @@ export function EventCard({
   reveal?: boolean; // intră în ecran cu GSAP (doar pe paginile statice, nu în lista filtrată)
 }) {
   const starts = new Date(item.startsAt);
-  const day = starts.toLocaleDateString("ro-RO", { day: "numeric", timeZone: "Europe/Bucharest" });
-  const month = starts.toLocaleDateString("ro-RO", { month: "short", timeZone: "Europe/Bucharest" }).replace(".", "");
+  const vibe = vibeOf(item.vibe);
+  const where = distanceKm != null ? `la ${distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1).replace(".", ",")} km`}` : [item.venueName, item.city].filter(Boolean).join(", ");
   return (
     <Link
       href={`/e/${item.slug}?src=t`}
@@ -30,46 +32,51 @@ export function EventCard({
       data-reveal={reveal ? "" : undefined}
       onMouseEnter={onHover ? () => onHover(item.id) : undefined}
       onMouseLeave={onHover ? () => onHover(null) : undefined}
-      className={cx(
-        "group block rounded-3xl overflow-hidden border bg-night-2 transition-[transform,border-color,box-shadow] duration-200",
-        selected ? "border-white/70 shadow-[0_0_0_3px_rgba(255,255,255,0.25)] -translate-y-0.5" : "border-white/10 hover:border-white/30 hover:-translate-y-0.5",
-      )}
+      className="group block @container rounded-[20px]"
     >
-      <div className={cx("grain relative overflow-hidden", compact ? "aspect-[16/10]" : "aspect-[4/5]")}>
-        {item.coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
-        ) : (
-          <div className="sunset absolute inset-0">
-            <p className="headline absolute left-4 right-4 bottom-4 text-[clamp(1.6rem,6cqw,2.6rem)] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.35)]">{item.title}</p>
+      <div className={cx("transition-transform duration-200 ease-out", selected ? "stub-selected -translate-y-1" : "group-hover:-translate-y-1 group-hover:-rotate-1")}>
+        <div className="stub-top p-2 pb-3">
+          <div className={cx("grain relative overflow-hidden rounded-[14px]", compact ? "aspect-[16/10]" : "aspect-[4/3]")}>
+            {item.coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.coverUrl} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
+            ) : (
+              <div className="sunset absolute inset-0" />
+            )}
+            <span className="sticker sticker-white absolute top-2 left-2 text-[13px] [--tilt:-4deg]">{formatDayShort(starts)}</span>
+            <span className="absolute top-2 right-2 flex flex-col items-end gap-1.5">
+              {item.discountPct ? <span className="sticker text-[13px] [--tilt:5deg]">-{item.discountPct}%</span> : null}
+              {item.heat >= 2 ? <span className="sticker sticker-pink text-[12px] [--tilt:-3deg]">{heatOf(item.heat).label}</span> : null}
+            </span>
           </div>
-        )}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
-        <div className="absolute top-3 left-3 rounded-xl bg-white/95 text-ink px-2.5 py-1.5 text-center leading-none shadow">
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted">{month}</p>
-          <p className="font-display font-extrabold text-xl">{day}</p>
+          <div className="px-1.5 pt-3">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-night-muted">
+              {vibe ? <span className="size-1.5 shrink-0 rounded-full" style={{ background: vibe.color }} aria-hidden="true" /> : null}
+              <span className="truncate">
+                {categoryLabel(item.category)}
+                {vibe ? ` · ${vibe.label}` : ""}
+              </span>
+            </p>
+            <p className="headline mt-1 text-[clamp(1.35rem,10cqw,2.1rem)] line-clamp-2 text-white">{item.title}</p>
+            <p className="mt-1.5 text-[13px] text-white/70 truncate">
+              {formatTime(starts)}
+              {where ? ` · ${where}` : ""}
+            </p>
+          </div>
         </div>
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
-          <DiscountBadge pct={item.discountPct} />
-          {item.heat >= 2 ? <HeatMeter level={item.heat} /> : null}
+        <div className="stub-bot relative flex items-center justify-between gap-2 px-3.5 pt-3 pb-3.5">
+          <span className="absolute left-4 right-4 top-0 border-t-2 border-dashed border-white/20" aria-hidden="true" />
+          <p className="min-w-0 leading-none">
+            {item.minPrice ? <span className="block text-[10px] font-semibold uppercase tracking-wider text-night-muted">de la</span> : null}
+            <span className="headline text-[1.6rem] text-white">{item.minPrice == null ? "—" : item.minPrice === 0 ? "Gratuit" : formatLei(item.minPrice)}</span>
+          </p>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white text-night pl-1 @[200px]:pl-3 pr-1 py-1 text-xs font-extrabold transition-colors group-hover:bg-lime">
+            <span className="hidden @[200px]:inline">Ia bilet</span>
+            <span className="grid size-6 place-items-center rounded-full bg-night text-white transition-transform duration-200 group-hover:-rotate-45" aria-hidden="true">
+              →
+            </span>
+          </span>
         </div>
-      </div>
-      <div className="p-4">
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          <CategoryChip category={item.category} />
-          <VibeChip vibe={item.vibe} />
-          {item.heat < 2 ? <HeatMeter level={item.heat} withLabel={false} /> : null}
-        </div>
-        <p className="font-display font-extrabold text-lg leading-tight text-white">{item.title}</p>
-        <p className="text-sm mt-1 text-night-muted">
-          {formatDayShort(starts)}, {formatTime(starts)}
-          {item.venueName ? ` · ${item.venueName}` : ""}
-          {distanceKm != null ? ` · la ${distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1).replace(".", ",")} km`}` : item.city ? `, ${item.city}` : ""}
-        </p>
-        <p className="text-sm mt-1.5 flex items-center justify-between gap-2">
-          <span className="text-night-muted truncate">{item.organizerName}</span>
-          <span className="font-bold text-white shrink-0">{item.minPrice == null ? "" : item.minPrice === 0 ? "gratuit" : `de la ${formatLei(item.minPrice)}`}</span>
-        </p>
       </div>
     </Link>
   );

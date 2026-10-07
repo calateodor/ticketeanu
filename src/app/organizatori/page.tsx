@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { bpsToPercent, platformFeeBps } from "@/lib/money";
+import { DragStickers } from "@/components/fun/drag-stickers";
 import { Reveals } from "@/components/motion/reveals";
 import { SmoothScroll } from "@/components/motion/smooth-scroll";
 import { SplitWords } from "@/components/motion/split-words";
@@ -20,14 +21,15 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  { k: "Lista", t: "Lista, nu doar biletul", d: "Gratuit, cu plata la intrare, cu avans sau plătit integral: toate pe același link. Locul neplătit la timp se eliberează singur și ajunge la următorul de pe lista de așteptare." },
+  { k: "Lista", t: "Lista, nu doar biletul", d: "Gratuit, cu plata la intrare, cu avans sau plătit integral, pe același link. Locul neplătit la timp ajunge singur la următorul de pe lista de așteptare." },
   { k: "Gașca", t: "Gașca plătește separat", d: "Cineva ține locuri pentru prieteni și trimite linkul în grup. Tu vezi toți oamenii, nu doar pe cel care a plătit pentru toți." },
-  { k: "Harta", t: "Ești pe hartă din prima zi", d: "Evenimentul apare pe harta Ticketeanu, filtrat după vibe și zonă. Tu spui vibe-ul; cererea reală arată cât de tare se încinge." },
-  { k: "Reduceri", t: "Reduceri care se văd", d: "Preț tăiat, oferte pe timp limitat cu numărătoare inversă, reduceri pentru studenți sau grupuri, coduri publice. Fără să umbli după cineva să le pună." },
-  { k: "PR", t: "Comision calculat singur", d: "Fiecare PR are linkul lui. Vezi câte bilete a vândut, iar comisionul se reține din încasări. Fără Excel, fără certuri." },
-  { k: "Intrarea", t: "Scanare fără aplicație", d: "Dai omului de la ușă un link. Scanează, caută după nume, vede ce mai e de încasat și ce reducere trebuie verificată." },
+  { k: "Harta", t: "Ești pe hartă din prima zi", d: "Evenimentul apare pe harta Ticketeanu, după vibe și zonă. Tu spui vibe-ul; cererea reală arată cât se încinge." },
+  { k: "Reduceri", t: "Reduceri care se văd", d: "Preț tăiat, oferte cu numărătoare inversă, reduceri pentru studenți sau grupuri, coduri publice." },
+  { k: "PR", t: "Comision calculat singur", d: "Fiecare PR are linkul lui. Vezi câte bilete a vândut; comisionul se reține din încasări. Fără Excel." },
+  { k: "Intrarea", t: "Scanare fără aplicație", d: "Omul de la ușă scanează, caută după nume, vede ce mai e de încasat și ce reducere trebuie verificată." },
 ];
 
+// Aceeași compoziție ca prima pagină: slide-uri lipite, goluri mici.
 export default async function OrganizersPage() {
   const user = await getCurrentUser();
   const feeBps = platformFeeBps();
@@ -36,19 +38,21 @@ export default async function OrganizersPage() {
   return (
     <div className="night min-h-dvh overflow-x-clip">
       <SiteHeader />
-      <main>
-        <section data-hero-root className="px-3 md:px-4 pt-4">
-          <div className="slide-deep grain relative max-w-7xl mx-auto min-h-[min(78vh,760px)] px-6 md:px-12 py-12 md:py-16 flex flex-col justify-end">
-            <p data-hero className="eyebrow mb-6">
+      <main className="max-w-7xl mx-auto px-3 md:px-4 pt-3 space-y-3">
+        <section data-hero-root className="slide-deep grain relative grid md:grid-cols-[1.4fr_1fr] gap-8 px-5 md:px-12 py-8 md:py-12 items-end">
+          <div className="relative z-10">
+            <p data-hero className="eyebrow text-white/75 mb-6">
               Pentru organizatori · cluburi, promoteri, săli
             </p>
-            <h1 data-split className="headline text-[clamp(3.6rem,11vw,9.5rem)]">
-              <SplitWords text={"Casa de bilete\nfără oameni."} />
-            </h1>
-            <p data-hero className="mt-6 max-w-xl text-lg md:text-xl text-white/85">
-              Îți faci singur pagina evenimentului în câteva minute. Lumea rezervă de pe telefon, singură sau cu gașca, iar tu vezi banii și lista în timp real.
-            </p>
-            <div data-hero className="mt-8 flex flex-wrap gap-3">
+            <div className="relative w-fit">
+              <h1 data-split className="headline text-[clamp(3.6rem,15vw,6rem)] md:text-[clamp(4.5rem,9vw,8.5rem)]">
+                <SplitWords text={"Casa de bilete\nfără oameni."} />
+              </h1>
+              <span data-drag aria-hidden="true" className="sticker sticker-in absolute right-0 -bottom-9 md:-right-8 md:bottom-[4%] text-[clamp(1rem,2vw,1.5rem)] [--tilt:8deg] [--delay:0.7s]">
+                Comision {bpsToPercent(feeBps)}
+              </span>
+            </div>
+            <div data-hero className="mt-8 flex flex-wrap gap-2">
               <Link href={start} className="rounded-full bg-white text-night px-6 py-3.5 font-bold hover:bg-lime transition-colors">
                 Fă primul eveniment
               </Link>
@@ -57,74 +61,70 @@ export default async function OrganizersPage() {
               </a>
             </div>
           </div>
+          <p data-hero className="relative z-10 text-lg md:text-xl text-white/85 md:pb-2">
+            Îți faci singur pagina evenimentului în câteva minute. Lumea rezervă de pe telefon, singură sau cu gașca, iar tu vezi banii și lista în timp real.
+          </p>
         </section>
 
-        <section className="max-w-7xl mx-auto px-4 pt-20 md:pt-28">
-          <h2 data-split className="headline text-[clamp(2.8rem,8vw,6.5rem)] mb-10">
-            <SplitWords text="Cum merge" />
-          </h2>
-          <ol className="grid md:grid-cols-3 gap-3 md:gap-4">
-            {STEPS.map((s, i) => (
-              <li key={s.t} data-reveal className="rounded-[1.75rem] border border-white/10 p-6 md:p-8">
-                <span className="headline block text-[6rem] leading-none text-sunset" aria-hidden="true">
-                  {i + 1}
-                </span>
-                <h3 className="mt-4 font-display font-extrabold text-2xl">{s.t}</h3>
-                <p className="mt-2 text-white/75">{s.d}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="max-w-7xl mx-auto px-4 pt-20 md:pt-28">
-          <h2 data-split className="headline text-[clamp(2.8rem,8vw,6.5rem)] mb-10">
-            <SplitWords text="Ce primești" />
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid gap-3 md:grid-cols-12">
+          <section className="slide-warm grain relative md:col-span-5 p-6 md:p-9">
+            <div className="relative z-10">
+              <h2 className="headline text-[clamp(2.8rem,5vw,4.4rem)]">Cum merge</h2>
+              <ol className="rail mt-6 space-y-5">
+                {STEPS.map((s) => (
+                  <li key={s.t}>
+                    <p className="font-display font-extrabold text-xl leading-tight">{s.t}</p>
+                    <p className="text-white/90">{s.d}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+          <section className="md:col-span-7 grid sm:grid-cols-2 gap-3" aria-label="Ce primești">
             {FEATURES.map((f) => (
-              <div key={f.k} data-reveal className="rounded-[1.75rem] border border-white/10 p-6">
-                <p className="eyebrow">{f.k}</p>
-                <h3 className="font-display font-extrabold text-2xl mt-2">{f.t}</h3>
-                <p className="mt-2 text-white/75">{f.d}</p>
+              <div key={f.k} data-reveal className="rounded-[1.5rem] glass p-5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-lime">{f.k}</p>
+                <h3 className="mt-1.5 font-display font-extrabold text-xl leading-tight">{f.t}</h3>
+                <p className="mt-1.5 text-sm text-white/75">{f.d}</p>
               </div>
             ))}
+          </section>
+        </div>
+
+        <section id="bani" className="slide grain relative grid md:grid-cols-2 gap-8 p-6 md:p-10 items-start scroll-mt-24">
+          <div className="relative z-10">
+            <h2 data-split className="headline text-[clamp(2.8rem,6vw,5.2rem)]">
+              <SplitWords text={"Prețul,\nla vedere."} />
+            </h2>
+            <p className="mt-4 text-white/90 text-lg">
+              Un singur comision, {bpsToPercent(feeBps)} din ce se plătește online, fără parte fixă pe bilet. Tu alegi dacă îl plătește cumpărătorul peste preț sau îl suporți din preț. Cumpărătorul vede oricum prețul final de la primul ecran.
+            </p>
+            <ul className="rail mt-5 space-y-2 text-white/90">
+              <li>Evenimente gratuite și rezervări cu plata la ușă: 0 lei.</li>
+              <li>Scanare de pe orice telefon, fără aplicație.</li>
+              <li>Lista participanților e a ta, cu export oricând.</li>
+              <li>Anulare = banii înapoi integral, cu comision cu tot.</li>
+            </ul>
+          </div>
+          <div className="relative z-10" data-reveal>
+            <FeeCalculator feeBps={feeBps} />
           </div>
         </section>
 
-        <section id="bani" className="px-3 md:px-4 pt-20 md:pt-28 scroll-mt-24">
-          <div className="slide grain relative max-w-7xl mx-auto grid md:grid-cols-2 gap-10 p-6 md:p-12 items-start">
-            <div className="relative z-10">
-              <h2 data-split className="headline text-[clamp(2.8rem,7vw,5.6rem)]">
-                <SplitWords text={"Prețul,\nla vedere."} />
-              </h2>
-              <p className="mt-5 text-white/90 text-lg" data-reveal>
-                Un singur comision, {bpsToPercent(feeBps)} din ce se plătește online, fără parte fixă pe bilet. Tu alegi dacă îl plătește cumpărătorul peste preț sau îl suporți din preț. Cumpărătorul vede oricum prețul final de la primul ecran.
-              </p>
-              <ul className="mt-5 space-y-2 text-white/90" data-reveal>
-                <li>· Evenimente gratuite și rezervări cu plata la ușă: 0 lei.</li>
-                <li>· Scanare de pe orice telefon, fără aplicație.</li>
-                <li>· Lista participanților e a ta, cu export oricând.</li>
-                <li>· Anulare = banii înapoi integral, cu comision cu tot.</li>
-              </ul>
-            </div>
-            <div className="relative z-10" data-reveal>
-              <FeeCalculator feeBps={feeBps} />
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-7xl mx-auto px-4 pt-24 md:pt-32 text-center">
-          <h2 data-split className="headline text-[clamp(3.2rem,10vw,8rem)]">
-            <SplitWords text={"Primul eveniment,\nîn două minute."} wordClassName="text-sunset" />
+        <section className="slide-deep grain relative flex flex-wrap items-end justify-between gap-6 p-6 md:p-10">
+          <h2 data-split className="headline relative z-10 text-[clamp(3rem,8vw,6.5rem)]">
+            <SplitWords text={"Primul eveniment,\nîn două minute."} />
           </h2>
-          <div className="mt-8" data-reveal>
-            <Link href={start} className="inline-flex rounded-full bg-white text-night px-7 py-4 font-bold hover:bg-lime transition-colors">
-              {user ? "Fă un eveniment nou" : "Intră și începe"}
-            </Link>
-          </div>
+          <Link href={start} className="relative z-10 group inline-flex items-center gap-2 rounded-full bg-white text-night pl-6 pr-1.5 py-1.5 font-bold hover:bg-lime transition-colors">
+            {user ? "Fă un eveniment nou" : "Intră și începe"}
+            <span className="grid size-9 place-items-center rounded-full bg-night text-white transition-transform duration-200 group-hover:-rotate-45" aria-hidden="true">
+              →
+            </span>
+          </Link>
         </section>
       </main>
       <SiteFooter />
+      <DragStickers />
       <Reveals />
       <SmoothScroll />
     </div>
