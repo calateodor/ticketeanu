@@ -25,6 +25,7 @@ export type TicketProps = {
   index?: number; // „Bilet 2 din 3”
   count?: number;
   animate?: boolean; // iese din aparat
+  sweepKey?: string; // când se schimbă, lumina trece din nou peste bilet (ex. alt eveniment pe același bilet)
   motionButton?: boolean; // butonul „Mișcă telefonul” (o dată pe pagină)
   className?: string;
 };
@@ -33,9 +34,11 @@ const MAX_DEG = 6; // cât se înclină biletul, cel mult
 
 // Lumina de pe bilet: înclinarea (telefon sau cursor) mută o bandă diagonală care aprinde
 // granulația, irizat. Totul prin variabile CSS scrise direct pe element, fără re-randări.
-function useSparkle(animateIn: boolean) {
+function useSparkle(animateIn: boolean, sweepKey: string | undefined) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const sweepRef = useRef<(() => void) | null>(null);
+  const firstKey = useRef(sweepKey);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -87,6 +90,7 @@ function useSparkle(animateIn: boolean) {
       sweepFrom = performance.now();
       sweepUntil = sweepFrom + 1000;
     };
+    sweepRef.current = startSweep;
     // Lumina trece peste bilet cum iese din imprimantă (.ticket-print: 0,25 s pauză + 1 s).
     const sweepTimer = window.setTimeout(startSweep, animateIn ? 1250 : 300);
     raf = requestAnimationFrame(tick);
@@ -117,14 +121,22 @@ function useSparkle(animateIn: boolean) {
       card.removeEventListener("pointermove", onMove);
       card.removeEventListener("pointerleave", onLeave);
       unsub();
+      sweepRef.current = null;
     };
   }, [animateIn]);
+
+  // Alt eveniment pe același bilet: o trecere de lumină, fără să-l mai tipărim.
+  useEffect(() => {
+    if (sweepKey === firstKey.current) return;
+    firstKey.current = sweepKey;
+    sweepRef.current?.();
+  }, [sweepKey]);
 
   return { wrapRef, cardRef };
 }
 
 export function Ticket(p: TicketProps) {
-  const { wrapRef, cardRef } = useSparkle(Boolean(p.animate));
+  const { wrapRef, cardRef } = useSparkle(Boolean(p.animate), p.sweepKey);
   const motion = useMotionState();
   const showMotion = motion !== "hidden" && (p.motionButton ?? true);
   const withCover = Boolean(p.useCover && p.coverUrl);
@@ -142,12 +154,13 @@ export function Ticket(p: TicketProps) {
             >
               {withCover ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.coverUrl!} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                <img key={p.coverUrl} src={p.coverUrl!} alt="" className="tk-cover-in absolute inset-0 w-full h-full object-cover" />
               ) : null}
               <div className="tk-scrim" aria-hidden="true" />
               <div className="tk-grain-rest" aria-hidden="true" />
               <div className="tk-grain-lit" aria-hidden="true" />
               <div className="tk-grain-core" aria-hidden="true" />
+              <div className="tk-sheen" aria-hidden="true" />
 
               <div className="tk-content">
                 {/* Partea mare */}
@@ -161,13 +174,13 @@ export function Ticket(p: TicketProps) {
                   </div>
 
                   <div className="absolute left-5 right-5 bottom-5">
-                    <p className="eyebrow text-white/75">{p.orderCode ?? p.code}</p>
+                    <p className="eyebrow tk-holo">{p.orderCode ?? p.code}</p>
                     {/* Mărimea ține de lățimea biletului (container), iar titlurile lungi se opresc la trei rânduri. */}
-                    <p className="headline mt-1 text-[clamp(1.5rem,11.5cqw,3rem)] line-clamp-3 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">{p.title}</p>
+                    <p className="headline tk-title-holo mt-1 text-[clamp(1.5rem,11.5cqw,3rem)] line-clamp-3 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">{p.title}</p>
                     <div className="mt-2 border-t-2 border-white/85" />
                     <div className="mt-2 flex items-end justify-between gap-3">
                       <p className="font-display font-extrabold text-lg leading-tight truncate">{p.subtitle ?? p.venue ?? "Intrare"}</p>
-                      <p className="shrink-0 font-display font-extrabold text-sm text-white/90">{p.timeLabel}</p>
+                      <p className="shrink-0 font-display font-extrabold text-sm tk-holo">{p.timeLabel}</p>
                     </div>
                     <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
                       <div>
@@ -204,7 +217,7 @@ export function Ticket(p: TicketProps) {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-mono font-bold text-base tracking-wider">{p.code}</p>
+                    <p className="font-mono font-bold text-base tracking-wider tk-holo">{p.code}</p>
                     {p.count && p.count > 1 ? (
                       <p className="eyebrow text-white/65">
                         Bilet {p.index ?? 1} din {p.count}

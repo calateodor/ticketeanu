@@ -454,6 +454,81 @@ body {
   --mask-band: var(--core-mask);
   filter: brightness(2.2) saturate(0.85);
 }
+/* Luciul secundar: o pată moale de lumină care alunecă singură peste bilet, la câteva secunde,
+   independent de înclinare. Aprinde suprafața, nu granulația. */
+.tk-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.5) 46%, rgba(255, 220, 255, 0.18) 52%, transparent 64%);
+  background-size: 260% 100%;
+  mix-blend-mode: soft-light;
+  animation: tk-sheen 6s cubic-bezier(0.45, 0, 0.25, 1) 1.6s infinite both;
+}
+@keyframes tk-sheen {
+  0% {
+    background-position: 140% 0;
+  }
+  45%,
+  100% {
+    background-position: -40% 0;
+  }
+}
+/* Afișul nou (alt eveniment pe același bilet) intră peste cel vechi. */
+.tk-cover-in {
+  animation: tk-cover-in 0.35s ease-out both;
+}
+@keyframes tk-cover-in {
+  from {
+    opacity: 0;
+    scale: 1.06;
+  }
+}
+/* Text holografic: paleta sunpillar, alunecă singură încet (--drift) și după înclinare (--holo-y). */
+@property --drift {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+.tk-holo {
+  background-image: repeating-linear-gradient(
+    100deg,
+    hsl(2, 100%, 80%) 0%,
+    hsl(53, 100%, 78%) 7%,
+    hsl(93, 100%, 78%) 14%,
+    hsl(176, 100%, 82%) 21%,
+    hsl(228, 100%, 82%) 28%,
+    hsl(283, 100%, 82%) 35%,
+    hsl(2, 100%, 80%) 42%
+  );
+  background-size: 300% 100%;
+  background-position: calc(var(--holo-y, 50%) + var(--drift)) 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: tk-drift 7s linear infinite;
+}
+@keyframes tk-drift {
+  to {
+    --drift: 100%;
+  }
+}
+/* Titlul rămâne alb; doar unde trece banda de lumină (--band) se irizează, cât de tare e --lit. */
+.tk-title-holo {
+  --hl: calc(var(--lit, 0) * 100%);
+  background-image: linear-gradient(
+    115deg,
+    #fff calc(var(--band) - 16%),
+    color-mix(in srgb, hsl(53, 100%, 72%) var(--hl), #fff) calc(var(--band) - 8%),
+    color-mix(in srgb, hsl(176, 100%, 72%) var(--hl), #fff) calc(var(--band) - 2%),
+    color-mix(in srgb, hsl(283, 100%, 76%) var(--hl), #fff) calc(var(--band) + 4%),
+    color-mix(in srgb, hsl(2, 100%, 74%) var(--hl), #fff) calc(var(--band) + 10%),
+    #fff calc(var(--band) + 16%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .tk-content {
   position: absolute;
   inset: 0;
@@ -871,6 +946,9 @@ body {
   .printer-feed,
   .printer-sticker,
   .sticker-in,
+  .tk-sheen,
+  .tk-holo,
+  .tk-cover-in,
   .fade-up,
   .pin-hot::before {
     animation: none;

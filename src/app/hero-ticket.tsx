@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CatalogItem } from "@/lib/catalog-types";
 import { formatDayShort, formatTime } from "@/lib/dates";
 import { formatLei } from "@/lib/money";
@@ -16,13 +16,12 @@ const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: numb
 };
 
 // Biletul din hero: un eveniment adevărat, pe care îl apeși ca să rezervi. Săgețile (sau swipe pe
-// telefon) trec la alt eveniment, iar imprimanta îl tipărește din nou. Ordinea: cele mai aproape de
+// telefon) trec la alt eveniment pe același bilet: se tipărește o singură dată, la intrare. Ordinea: cele mai aproape de
 // tine dacă ai dat deja voie la locație (nu întrebăm aici), altfel cele mai cerute.
 export function HeroTicket({ events }: { events: HeroEvent[] }) {
   const [order, setOrder] = useState(events);
   const [nearMe, setNearMe] = useState(false);
   const [i, setI] = useState(0);
-  const [printed, setPrinted] = useState(0); // câte tipăriri: prima are pauza de intrare, restul pornesc imediat
   const touchX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -50,10 +49,8 @@ export function HeroTicket({ events }: { events: HeroEvent[] }) {
   if (!current) return null;
   const { item, qr } = current;
   const many = order.length > 1;
-  const go = (step: number) => {
-    setI((n) => (n + step + order.length) % order.length);
-    setPrinted((p) => p + 1);
-  };
+  // Săgețile schimbă biletul pe loc (afișul trece în următorul, lumina îl mătură), fără retipărire.
+  const go = (step: number) => setI((n) => (n + step + order.length) % order.length);
   const href = `/e/${item.slug}?src=t#bilete`;
   const price = item.minPrice == null ? null : item.minPrice === 0 ? "gratuit" : `de la ${formatLei(item.minPrice)}`;
 
@@ -67,8 +64,8 @@ export function HeroTicket({ events }: { events: HeroEvent[] }) {
         if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
       }}
     >
-      <Link href={href} aria-label={`${item.title}: rezervă`} className="block rounded-[22px]" style={printed > 0 ? ({ "--print-wait": "0s" } as CSSProperties) : undefined}>
-        <TicketMachine key={`${item.id}-${printed}`} label="Printărie" sticker="Gata!">
+      <Link href={href} aria-label={`${item.title}: rezervă`} className="block rounded-[22px]">
+        <TicketMachine label="Printărie" sticker="Gata!">
           <Ticket
             title={item.title}
             subtitle={item.subtitle}
@@ -85,6 +82,7 @@ export function HeroTicket({ events }: { events: HeroEvent[] }) {
             useCover={Boolean(item.coverUrl)}
             motionButton={false}
             animate
+            sweepKey={item.id}
           />
         </TicketMachine>
       </Link>

@@ -105,18 +105,21 @@ export default async function Home() {
               {items.length} {items.length === 1 ? "eveniment" : "evenimente"} în {cities.length} {cities.length === 1 ? "oraș" : "orașe"}, cu bilete acum
             </p>
 
-            <div className="relative mt-auto w-fit pt-12 md:pt-16">
-              <h1 data-split className="headline text-[clamp(4.6rem,25vw,8.5rem)] md:text-[clamp(6rem,14vw,13.5rem)] text-white drop-shadow-[0_6px_30px_rgba(60,0,80,0.35)]">
+            <div className="relative my-auto w-fit pt-10 md:pt-6">
+              <h1 data-split className="headline text-[clamp(4rem,21vw,7rem)] md:text-[clamp(5rem,9.5vw,9.5rem)] text-white drop-shadow-[0_6px_30px_rgba(60,0,80,0.35)]">
                 <SplitWords text={"Gata\nbiletul."} />
               </h1>
               {/* Stickere de mutat cu degetul: decor, informația e și în text. */}
               <span data-drag aria-hidden="true" className="sticker sticker-in absolute left-[60%] top-[22%] md:left-[64%] md:top-[24%] text-[clamp(1rem,2.2vw,1.6rem)] [--tilt:8deg] [--delay:0.75s]">
                 Fără cont
               </span>
+              <span data-drag aria-hidden="true" className="sticker sticker-white sticker-in absolute -left-1 -bottom-7 md:left-[6%] md:-bottom-8 text-[clamp(0.95rem,1.8vw,1.35rem)] [--tilt:-6deg] [--delay:0.9s]">
+                20 de secunde
+              </span>
             </div>
 
             {/* Căutarea: ce, unde. Duce pe hartă, cu filtrele puse. */}
-            <form data-hero action="/evenimente" role="search" className="mt-10 md:mt-12 max-w-xl">
+            <form data-hero action="/evenimente" role="search" className="mt-12 md:mt-14 max-w-xl">
               <div className="flex flex-col sm:flex-row gap-2 rounded-[1.6rem] sm:rounded-full bg-white p-1.5 shadow-[0_20px_50px_-20px_rgba(40,0,60,0.7)]">
                 <label className="sr-only" htmlFor="q">
                   Caută
