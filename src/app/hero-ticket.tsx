@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CatalogItem } from "@/lib/catalog-types";
 import { formatDayShort, formatTime } from "@/lib/dates";
 import { formatLei } from "@/lib/money";
-import { Ticket, TicketMachine } from "@/components/ticket/ticket";
+import { MotionButton, Ticket, TicketMachine } from "@/components/ticket/ticket";
 
 export type HeroEvent = { item: CatalogItem; qr: string };
 
@@ -111,6 +111,8 @@ export function HeroTicket({ events }: { events: HeroEvent[] }) {
           </button>
         ) : null}
       </div>
+      {/* Înclinarea pe telefon: butonul stă în afara linkului biletului, ca să nu ducă la rezervare. */}
+      <MotionButton className="mt-3" />
       <p className="sr-only" aria-live="polite">
         {item.title}, {formatDayShort(new Date(item.startsAt))}
       </p>

@@ -137,8 +137,6 @@ function useSparkle(animateIn: boolean, sweepKey: string | undefined) {
 
 export function Ticket(p: TicketProps) {
   const { wrapRef, cardRef } = useSparkle(Boolean(p.animate), p.sweepKey);
-  const motion = useMotionState();
-  const showMotion = motion !== "hidden" && (p.motionButton ?? true);
   const withCover = Boolean(p.useCover && p.coverUrl);
   const status = p.status ?? "valid";
   const dim = status === "cancelled" || status === "pending";
@@ -235,19 +233,29 @@ export function Ticket(p: TicketProps) {
           </div>
         </div>
       </div>
-      {showMotion ? (
-        <div className="mt-3 flex justify-center text-center">
-          {motion === "ask" ? (
-            <button type="button" onClick={() => requestMotion()} className="glass rounded-full px-4 py-2 text-xs font-semibold text-white/85 hover:bg-white/15">
-              Mișcă telefonul ca să prindă lumina
-            </button>
-          ) : (
-            <p className="text-xs text-night-muted max-w-xs">
-              {motion === "insecure" ? "Telefonul dă voie la înclinare doar pe paginile cu https. Deschide pagina pe https." : "Ai refuzat accesul la mișcare. Îl poți porni din setările browserului."}
-            </p>
-          )}
-        </div>
-      ) : null}
+      {p.motionButton ?? true ? <MotionButton className="mt-3" /> : null}
+    </div>
+  );
+}
+
+// Butonul de sub bilet care pornește înclinarea pe telefon (pe iPhone cere permisiunea). Apare doar
+// pe ecrane tactile, până sosesc primele date de înclinare; separat de bilet ca să poată sta și în
+// afara unui link (biletul din hero e un link spre rezervare).
+export function MotionButton({ className }: { className?: string }) {
+  const motion = useMotionState();
+  if (motion === "hidden") return null;
+  return (
+    <div className={cx("flex justify-center text-center", className)}>
+      {motion === "ask" ? (
+        <button type="button" onClick={() => requestMotion()} className="inline-flex items-center gap-2 rounded-full bg-night/50 ring-1 ring-white/25 px-4 py-2 text-xs font-bold text-white hover:bg-night/70 transition-colors">
+          <span className="size-1.5 rounded-full bg-lime animate-pulse" aria-hidden="true" />
+          Mișcă telefonul ca să prindă lumina
+        </button>
+      ) : (
+        <p className="max-w-xs text-xs font-medium text-white/80">
+          {motion === "insecure" ? "Telefonul dă voie la înclinare doar pe paginile cu https. Deschide pagina pe https." : "Ai refuzat accesul la mișcare. Îl poți porni din setările browserului."}
+        </p>
+      )}
     </div>
   );
 }
