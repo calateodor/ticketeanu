@@ -4,15 +4,30 @@
     {
       "name": "ticketeanu",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000
     },
     {
       "name": "ticketeanu-https",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:https"],
+      "runtimeArgs": [
+        "run",
+        "dev:https"
+      ],
       "port": 3001,
       "url": "https://localhost:3001"
+    },
+    {
+      "name": "ticketeanu-public",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/start-public.mjs",
+        "https://unobservedly-astylar-deanne.ngrok-free.dev"
+      ],
+      "port": 3002
     }
   ]
 }

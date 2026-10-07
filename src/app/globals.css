@@ -483,8 +483,10 @@ body {
 }
 .printer-label {
   position: absolute;
-  left: 18px;
+  left: 32px;
+  right: 32px;
   top: 11px;
+  text-align: center;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.22em;

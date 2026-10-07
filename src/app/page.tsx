@@ -99,11 +99,6 @@ export default async function Home() {
               <span data-drag aria-hidden="true" className="sticker sticker-white sticker-in absolute -left-1 -bottom-8 md:left-[10%] md:-bottom-8 text-[clamp(0.95rem,2vw,1.4rem)] [--tilt:-6deg] [--delay:0.9s]">
                 20 de secunde
               </span>
-              {maxDiscount > 0 ? (
-                <span data-drag aria-hidden="true" className="sticker sticker-orange sticker-in absolute right-0 -bottom-8 md:right-auto md:bottom-auto md:left-[2%] md:top-[4%] text-[clamp(0.95rem,2vw,1.4rem)] [--tilt:-10deg] [--delay:1.05s]">
-                  Până la -{maxDiscount}%
-                </span>
-              ) : null}
             </div>
 
             <div data-hero className="mt-14 flex flex-wrap items-end gap-x-8 gap-y-5">
@@ -125,7 +120,7 @@ export default async function Home() {
 
           <div className="relative z-10 w-full max-w-[330px] md:max-w-[370px] mx-auto md:mx-0 md:justify-self-end md:self-center">
             {hottest ? (
-              <TicketMachine label="Se tipărește acum" sticker="Gata!">
+              <TicketMachine label="Printărie" sticker="Gata!">
                 <Ticket
                   title={hottest.title}
                   subtitle={hottest.subtitle}
