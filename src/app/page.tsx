@@ -99,21 +99,22 @@ export default async function Home() {
       <main className="max-w-7xl mx-auto px-3 md:px-4 pt-3 space-y-3">
         {/* 1. Hero: titlul și imprimanta care tipărește biletul celui mai cerut eveniment. */}
         <section data-hero-root className="slide grain relative grid md:grid-cols-[1fr_minmax(290px,370px)] gap-8 md:gap-10 px-5 md:px-12 pt-6 pb-8 md:py-10">
-          <div className="relative z-10 flex flex-col">
+          <div className="@container relative z-10 flex flex-col">
             <p data-hero className="inline-flex w-fit items-center gap-2 rounded-full glass px-3 py-1.5 text-xs font-bold text-lime">
               <span className="size-1.5 rounded-full bg-lime" aria-hidden="true" />
               {items.length} {items.length === 1 ? "eveniment" : "evenimente"} în {cities.length} {cities.length === 1 ? "oraș" : "orașe"}, cu bilete acum
             </p>
 
             <div className="relative my-auto w-fit pt-10 md:pt-6">
-              <h1 data-split className="headline text-[clamp(4rem,21vw,7rem)] md:text-[clamp(5rem,9.5vw,9.5rem)] text-white drop-shadow-[0_6px_30px_rgba(60,0,80,0.35)]">
-                <SplitWords text={"Gata\nbiletul."} />
+              {/* Pe un singur rând: mărimea ține de lățimea coloanei (container), ca să umple rândul pe orice ecran. */}
+              <h1 data-split className="headline whitespace-nowrap text-[min(21.5cqw,11rem)] text-white drop-shadow-[0_6px_30px_rgba(60,0,80,0.35)]">
+                <SplitWords text="Gata biletul." />
               </h1>
               {/* Stickere de mutat cu degetul: decor, informația e și în text. */}
-              <span data-drag aria-hidden="true" className="sticker sticker-in absolute left-[60%] top-[22%] md:left-[64%] md:top-[24%] text-[clamp(1rem,2.2vw,1.6rem)] [--tilt:8deg] [--delay:0.75s]">
+              <span data-drag aria-hidden="true" className="sticker sticker-in absolute right-[2%] -bottom-8 md:right-auto md:left-[46%] md:-bottom-9 text-[clamp(1rem,2.2vw,1.6rem)] [--tilt:8deg] [--delay:0.75s]">
                 Fără cont
               </span>
-              <span data-drag aria-hidden="true" className="sticker sticker-white sticker-in absolute -left-1 -bottom-7 md:left-[6%] md:-bottom-8 text-[clamp(0.95rem,1.8vw,1.35rem)] [--tilt:-6deg] [--delay:0.9s]">
+              <span data-drag aria-hidden="true" className="sticker sticker-white sticker-in absolute left-[4%] -bottom-8 md:left-[6%] md:-bottom-9 text-[clamp(0.95rem,1.8vw,1.35rem)] [--tilt:-6deg] [--delay:0.9s]">
                 20 de secunde
               </span>
             </div>
