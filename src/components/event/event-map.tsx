@@ -19,6 +19,7 @@ type Props = {
   center: { lat: number; lng: number };
   zoom?: number;
   fitAll?: boolean; // încadrează toate pinurile (când nu știm unde e omul)
+  frame?: { lat: number; lng: number }[] | null; // încadrează exact punctele astea (omul + ce e aproape de el)
   userPos?: { lat: number; lng: number } | null;
   selectedId?: string | null;
   onSelect?: (id: string) => void;
@@ -27,7 +28,8 @@ type Props = {
 };
 
 type Leaflet = typeof import("leaflet");
-type View = { points: MapPoint[]; center: { lat: number; lng: number }; zoom: number; fitAll: boolean; userPos: { lat: number; lng: number } | null; selectedId: string | null };
+type LatLng = { lat: number; lng: number };
+type View = { points: MapPoint[]; center: LatLng; zoom: number; fitAll: boolean; frame: LatLng[] | null; userPos: LatLng | null; selectedId: string | null };
 
 // Dalele standard OpenStreetMap: fără cheie. Se întunecă din CSS (.map-dark) pe paginile de noapte.
 // În producție, la trafic mare, se trece pe un furnizor cu cheie (MapTiler, Stadia) sau pe dale proprii.
@@ -36,15 +38,16 @@ const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStree
 
 // Harta e doar pe client (Leaflet are nevoie de window): se încarcă în efect, asincron.
 // Starea dorită stă într-un ref și se aplică și imediat după ce harta există, și la fiecare schimbare.
-export function EventMap({ points, center, zoom = 12, fitAll = false, userPos, selectedId, onSelect, className, interactive = true }: Props) {
+export function EventMap({ points, center, zoom = 12, fitAll = false, frame = null, userPos, selectedId, onSelect, className, interactive = true }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const leafletRef = useRef<Leaflet | null>(null);
   const markersRef = useRef<Map<string, Marker>>(new Map());
   const userRef = useRef<Marker | null>(null);
   const onSelectRef = useRef(onSelect);
-  const viewRef = useRef<View>({ points, center, zoom, fitAll, userPos: userPos ?? null, selectedId: selectedId ?? null });
+  const viewRef = useRef<View>({ points, center, zoom, fitAll, frame, userPos: userPos ?? null, selectedId: selectedId ?? null });
   const framedRef = useRef<string>(""); // ultimul cadru aplicat, ca să nu re-încadrăm la fiecare randare
+  const roRef = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -90,14 +93,15 @@ export function EventMap({ points, center, zoom = 12, fitAll = false, userPos, s
     }
   };
 
-  // Cadrul: toate pinurile sau centrul cerut (poziția omului).
+  // Cadrul: punctele cerute (omul + ce e lângă el), toate pinurile sau centrul cerut.
   const syncView = (map: LeafletMap, v: View) => {
-    const key = v.fitAll ? `fit:${v.points.map((p) => `${p.lat.toFixed(4)},${p.lng.toFixed(4)}`).join("|")}` : `center:${v.center.lat.toFixed(4)},${v.center.lng.toFixed(4)},${v.zoom}`;
+    const list = (pts: LatLng[]) => pts.map((p) => `${p.lat.toFixed(4)},${p.lng.toFixed(4)}`).join("|");
+    const key = v.frame?.length ? `frame:${list(v.frame)}` : v.fitAll ? `fit:${list(v.points)}` : `center:${list([v.center])},${v.zoom}`;
     if (key === framedRef.current) return;
     framedRef.current = key;
-    const coords = v.points.map((p) => [p.lat, p.lng] as [number, number]);
-    if (v.fitAll && coords.length > 1) map.fitBounds(coords, { padding: [48, 48], maxZoom: 14 });
-    else if (v.fitAll && coords.length === 1) map.setView(coords[0], 13);
+    const coords = (v.frame?.length ? v.frame : v.fitAll ? v.points : []).map((p) => [p.lat, p.lng] as [number, number]);
+    if (coords.length > 1) map.fitBounds(coords, { padding: [48, 48], maxZoom: 14 });
+    else if (coords.length === 1) map.setView(coords[0], 13);
     else map.flyTo([v.center.lat, v.center.lng], v.zoom, { duration: 0.6 });
   };
 
@@ -122,9 +126,23 @@ export function EventMap({ points, center, zoom = 12, fitAll = false, userPos, s
       mapRef.current = map;
       syncMarkers(L, map, v);
       syncView(map, v);
+      // Pe telefon harta se creează ascunsă (fila „Listă”), cu mărimea zero. Când apare sau își
+      // schimbă mărimea, Leaflet o remăsoară; dacă era ascunsă, cadrul se aplică din nou.
+      const ro = new ResizeObserver(() => {
+        const was = map.getSize();
+        map.invalidateSize();
+        if (was.x === 0 || was.y === 0) {
+          framedRef.current = "";
+          syncView(map, viewRef.current);
+        }
+      });
+      ro.observe(elRef.current);
+      roRef.current = ro;
     });
     return () => {
       cancelled = true;
+      roRef.current?.disconnect();
+      roRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
       markers.clear();
@@ -135,14 +153,14 @@ export function EventMap({ points, center, zoom = 12, fitAll = false, userPos, s
   }, []);
 
   useEffect(() => {
-    const v: View = { points, center, zoom, fitAll, userPos: userPos ?? null, selectedId: selectedId ?? null };
+    const v: View = { points, center, zoom, fitAll, frame, userPos: userPos ?? null, selectedId: selectedId ?? null };
     viewRef.current = v;
     const map = mapRef.current;
     const L = leafletRef.current;
     if (!map || !L) return;
     syncMarkers(L, map, v);
     syncView(map, v);
-  }, [points, center, zoom, fitAll, userPos, selectedId]);
+  }, [points, center, zoom, fitAll, frame, userPos, selectedId]);
 
   return <div ref={elRef} className={`map-dark ${className ?? ""}`} role="region" aria-label="Harta evenimentelor" />;
 }

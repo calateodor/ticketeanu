@@ -135,7 +135,7 @@ export function Stamp({ children, className, animate = false, color }: { childre
   );
 }
 
-export function Logo({ className, dark = false }: { className?: string; dark?: boolean }) {
+export function Logo({ className, textClassName, dark = false }: { className?: string; textClassName?: string; dark?: boolean }) {
   return (
     <span className={cx("inline-flex items-center gap-2 font-display font-extrabold tracking-tight text-lg", dark ? "text-white" : "text-ink", className)}>
       <span
@@ -147,7 +147,7 @@ export function Logo({ className, dark = false }: { className?: string; dark?: b
       >
         T
       </span>
-      Ticketeanu
+      <span className={textClassName}>Ticketeanu</span>
     </span>
   );
 }

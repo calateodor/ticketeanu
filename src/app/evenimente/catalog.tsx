@@ -10,6 +10,8 @@ import { cx } from "@/components/ui";
 type Pos = { lat: number; lng: number };
 
 const BUCHAREST: Pos = { lat: 44.4325, lng: 26.1039 };
+const NEAR_KM = 30; // „în zona ta”
+const GEO_OPTS: PositionOptions = { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 };
 const LIME = "#e9ff4f";
 
 function distanceKm(a: Pos, b: Pos): number {
@@ -20,16 +22,17 @@ function distanceKm(a: Pos, b: Pos): number {
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-export function Catalog({ items, cities, initial }: { items: CatalogItem[]; cities: { city: string; count: number }[]; initial: { category?: string | null; vibe?: string | null; discounted?: boolean; city?: string | null } }) {
+export function Catalog({ items, cities, initial }: { items: CatalogItem[]; cities: { city: string; count: number }[]; initial: { category?: string | null; vibe?: string | null; discounted?: boolean; city?: string | null; map?: boolean } }) {
   const [category, setCategory] = useState<string | null>(initial.category ?? null);
   const [vibe, setVibe] = useState<string | null>(initial.vibe ?? null);
   const [discounted, setDiscounted] = useState(Boolean(initial.discounted));
   const [city, setCity] = useState<string | null>(initial.city ?? null);
   const [userPos, setUserPos] = useState<Pos | null>(null);
-  const [geo, setGeo] = useState<"idle" | "asking" | "denied">("idle");
+  // Locația se cere singură la deschidere (browserul întreabă o dată și ține minte răspunsul).
+  const [geo, setGeo] = useState<"idle" | "asking" | "denied">("asking");
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"list" | "map">(initial.map ? "map" : "list");
 
   const filtered = useMemo(() => {
     let list = items.filter((i) => (!category || i.category === category) && (!vibe || i.vibe === vibe) && (!discounted || i.hasDiscount) && (!city || i.city === city));
@@ -56,18 +59,39 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
     return { lat, lng };
   }, [userPos, points]);
 
+  const onPos = useCallback((pos: GeolocationPosition) => {
+    setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    setGeo("idle");
+  }, []);
+  const onNoPos = useCallback(() => setGeo("denied"), []);
+
   const locate = useCallback(() => {
     if (!navigator.geolocation) return setGeo("denied");
     setGeo("asking");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setGeo("idle");
-      },
-      () => setGeo("denied"),
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 },
-    );
-  }, []);
+    navigator.geolocation.getCurrentPosition(onPos, onNoPos, GEO_OPTS);
+  }, [onPos, onNoPos]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      void Promise.resolve().then(onNoPos);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(onPos, onNoPos, GEO_OPTS);
+  }, [onPos, onNoPos]);
+
+  // Ce e în zona ta: pinurile la cel mult NEAR_KM, cele mai apropiate întâi. Harta se încadrează pe
+  // tine și pe ele; dacă nu e nimic aproape, pe tine și pe cel mai apropiat eveniment.
+  const nearby = useMemo(() => {
+    if (!userPos) return [];
+    return points.map((p) => ({ p, km: distanceKm(userPos, p) })).sort((a, b) => a.km - b.km);
+  }, [userPos, points]);
+  const inArea = nearby.filter((n) => n.km <= NEAR_KM);
+  const frame = useMemo(() => {
+    if (!userPos) return null;
+    const close = nearby.filter((n) => n.km <= NEAR_KM).slice(0, 6);
+    return [userPos, ...(close.length ? close : nearby.slice(0, 1)).map((n) => ({ lat: n.p.lat, lng: n.p.lng }))];
+  }, [userPos, nearby]);
+  const km = (d: number) => (d < 1 ? `${Math.round(d * 1000)} m` : `${Math.round(d)} km`);
 
   // Pinul selectat pe hartă aduce cardul în vedere.
   useEffect(() => {
@@ -82,9 +106,10 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
     if (vibe) sp.set("vibe", vibe);
     if (discounted) sp.set("reduceri", "1");
     if (city) sp.set("oras", city);
+    if (view === "map") sp.set("harta", "1");
     const q = sp.toString();
     window.history.replaceState(null, "", q ? `/evenimente?${q}` : "/evenimente");
-  }, [category, vibe, discounted, city]);
+  }, [category, vibe, discounted, city, view]);
 
   const chipCls = (active: boolean) =>
     cx("rounded-full px-3 py-1.5 text-sm font-semibold border whitespace-nowrap transition-colors", active ? "bg-white text-night border-white" : "border-white/15 text-night-muted hover:text-white hover:border-white/40");
@@ -104,7 +129,16 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
           {geo === "asking" ? "Te caut…" : userPos ? "Lângă mine ✓" : "Lângă mine"}
         </button>
       </div>
-      {geo === "denied" ? <p className="mt-2 text-sm text-night-muted">Nu am primit poziția. Alege orașul mai jos.</p> : null}
+      {geo === "denied" ? <p className="mt-2 text-sm text-night-muted">Nu am primit poziția, așa că îți arăt tot. Alege orașul mai jos sau apasă „Lângă mine”.</p> : null}
+      {userPos ? (
+        <p className="mt-2 text-sm font-semibold text-white/90" role="status">
+          {inArea.length > 0
+            ? `${inArea.length} ${inArea.length === 1 ? "eveniment" : "evenimente"} la mai puțin de ${NEAR_KM} km de tine. Cel mai aproape: ${inArea[0].p.title}, la ${km(inArea[0].km)}.`
+            : nearby[0]
+              ? `Nimic la mai puțin de ${NEAR_KM} km de tine. Cel mai aproape: ${nearby[0].p.title}, la ${km(nearby[0].km)}.`
+              : "Nu e niciun eveniment pe hartă cu filtrele astea."}
+        </p>
+      ) : null}
 
       <div className="mt-6 space-y-2">
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
@@ -176,13 +210,14 @@ export function Catalog({ items, cities, initial }: { items: CatalogItem[]; citi
             center={center}
             zoom={userPos ? 13 : 12}
             fitAll={!userPos}
+            frame={frame}
             userPos={userPos}
             selectedId={hovered ?? selected}
             onSelect={(id) => {
               setSelected(id);
               setView("list");
             }}
-            className="h-[60dvh] md:h-[calc(100dvh-6rem)] rounded-3xl overflow-hidden border border-white/10"
+            className="h-[70dvh] md:h-[calc(100dvh-6rem)] rounded-3xl overflow-hidden border border-white/10"
           />
           <p className="mt-2 eyebrow normal-case tracking-normal">Pinul pulsează când evenimentul se încinge. Culoarea e vibe-ul: {VIBES.map((v) => v.label.toLowerCase()).join(", ")}.</p>
         </div>

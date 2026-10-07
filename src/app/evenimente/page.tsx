@@ -18,7 +18,7 @@ export default async function CatalogPage({ searchParams }: PageProps<"/evenimen
     <div className="night min-h-dvh">
       <SiteHeader />
       <main className="max-w-7xl mx-auto px-4 pb-4 pt-8">
-        <Catalog items={items} cities={cities} initial={{ category, vibe, discounted: sp.reduceri === "1", city }} />
+        <Catalog items={items} cities={cities} initial={{ category, vibe, discounted: sp.reduceri === "1", city, map: sp.harta === "1" }} />
       </main>
       <SiteFooter />
       <Reveals />
