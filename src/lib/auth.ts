@@ -72,9 +72,15 @@ export async function requestLoginCode(
     intro: `Scrie codul ${code} în pagina de intrare. E valabil ${CODE_MINUTES} minute.`,
     footer: "Dacă nu tu ai cerut codul, ignoră mesajul. Nimeni nu poate intra fără el.",
   });
-  await sendMail({ to: email, subject: `${code} este codul tău Ticketeanu`, ...mail, related: { type: "login", id: email } });
+  const sent = await sendMail({ to: email, subject: `${code} este codul tău Ticketeanu`, ...mail, related: { type: "login", id: email } });
 
   const isDev = process.env.NODE_ENV !== "production" && !process.env.RESEND_API_KEY;
+  // În producție, un cod care n-a plecat pe e-mail nu ajunge la nimeni: spunem asta pe loc,
+  // în loc de „Codul a plecat”. Cauza obișnuită: lipsește RESEND_API_KEY sau expeditorul nu e verificat.
+  if (!isDev && !sent.delivered) {
+    console.error(`[login] codul pentru ${email} nu a plecat pe e-mail (RESEND_API_KEY ${process.env.RESEND_API_KEY ? "setat, dar trimiterea a eșuat" : "lipsește"}).`);
+    return { ok: false, error: "Nu am putut trimite e-mailul cu codul. Încearcă din nou peste câteva minute." };
+  }
   return { ok: true, ...(isDev ? { devCode: code } : {}) };
 }
 
